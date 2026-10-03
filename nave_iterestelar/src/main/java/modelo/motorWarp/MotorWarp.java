@@ -9,9 +9,14 @@ public class MotorWarp {
      * Constructor de la clase MotorWarp<br>
      * <b>pre:</b>bitacora != null  <br>
      * <b>post:</b> se inicializa el atributo bitacora <br>
+     *  * <b>trow: bitacora != null</b>
      * @param bitacora
      */
     public MotorWarp(Bitacora bitacora) {
+        if (bitacora == null) {
+            throw new IllegalArgumentException("La bitacora no puede ser null");
+        }
+
         setState(new Disponible(this));
         this.bitacora = bitacora;
     }
@@ -19,18 +24,26 @@ public class MotorWarp {
     /**
      * Cambia el estado del motorWarp<br>
      * <b>post:</b> se inicializa el atributo state <br>
+     *    * <b>trow: state != null</b>
      * @param state
      */
     public void setState(State state) {
+        if (state == null)  {
+            throw new IllegalArgumentException("El state no puede ser null");
+        }
         this.state = state;
     }
 
     /**
      * cambia la bitacora<br>
      * <b>post:</b> se inicializa el atributo bitacora <br>
+     * <b>trow: bitacora != null</b>
      * @param bitacora
      */
     public void setBitacora(Bitacora bitacora){
+        if (bitacora== null){
+            throw new IllegalArgumentException("La bitacora no puede ser null");
+        }
         this.bitacora = bitacora;
     }
 
