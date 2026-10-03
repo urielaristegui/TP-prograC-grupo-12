@@ -32,10 +32,10 @@ public class AsistenteDeComandos {
 		bitacora.registrar(evento);
 	}
 	public void preparaSalto() {
-		//codigo
+		nave.prepararSalto();
 	}
-	
+ 
 	public void salta() {
-		//codigo
+		nave.saltar();
 	}
 }
