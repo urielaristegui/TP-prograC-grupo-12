@@ -247,4 +247,30 @@ public abstract class Nave {
                     "El ID del tripulante no puede ser null ni vacío");
         }
     }
+
+    /**
+     * Solicita al motor preparar el salto.
+     *
+     * <b>pre:</b> el motor está Disponible.
+     * <b>post:</b> el motor está PreparandoSalto.
+     *
+     * @throws IllegalStateException si el estado no permite preparar el salto
+     */
+    public void prepararSalto() {
+        motorWarp.prepararSalto();
+    }
+
+    /**
+     * Ejecuta el salto y lo finaliza en el mismo llamado.
+     *
+     * <b>pre:</b> el motor está PreparandoSalto.
+     * <b>post:</b> el motor pasa por EnWarp y termina Disponible.
+     *
+     * @throws IllegalStateException si el estado no permite saltar
+     */
+    public void saltar() {
+        motorWarp.entrarEnWarp();
+        motorWarp.volverAlDisponible();
+    }
+
 }

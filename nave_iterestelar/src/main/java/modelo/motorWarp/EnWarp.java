@@ -37,7 +37,9 @@ public class EnWarp implements modelo.motorWarp.State {
      */
     @Override
     public void volverADisponible() {
-        motorWarp.bitacora.registrar("ERROR: el motor no puede volver a disponible sin haberse enfriado");
+        motorWarp.setState(new Disponible(motorWarp));
+        motorWarp.bitacora.registrar(
+                "Salto finalizado: motor disponible");
     }
 
     /**
