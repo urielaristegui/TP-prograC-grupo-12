@@ -1,8 +1,8 @@
-package motorWarp;
-import bitacora.Bitacora;
+package modelo.motorWarp;
+import modelo.bitacora.Bitacora;
 
 public class MotorWarp {
-    private State state;
+    private modelo.motorWarp.State state;
     protected Bitacora bitacora;
 
     /**

@@ -1,4 +1,4 @@
-package bitacora;
+package modelo.bitacora;
 import java.util.ArrayList;
 
 public class Bitacora {

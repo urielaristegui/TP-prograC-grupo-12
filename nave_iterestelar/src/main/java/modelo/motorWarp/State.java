@@ -1,4 +1,4 @@
-package motorWarp;
+package modelo.motorWarp;
 
 public interface State {
     public void prepararSalto();

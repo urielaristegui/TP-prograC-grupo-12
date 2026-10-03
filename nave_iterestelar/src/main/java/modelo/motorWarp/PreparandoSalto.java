@@ -1,6 +1,6 @@
-package motorWarp;
+package modelo.motorWarp;
 
-public class PreparandoSalto implements State{
+public class PreparandoSalto implements modelo.motorWarp.State {
     private MotorWarp motorWarp;
 
     /**
