@@ -1,4 +1,5 @@
-package Tripulacion;
+package modelo.Tripulacion;
+import modelo.Tripulacion.Tripulante;
 
 public class Teniente extends Tripulante{
     public Teniente(Identidad id,double ant) {

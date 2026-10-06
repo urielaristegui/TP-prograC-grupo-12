@@ -1,4 +1,4 @@
-package Tripulacion;
+package modelo.Tripulacion;
 
 public class Alferez extends Tripulante{
     public Alferez(Identidad id,double ant) {
