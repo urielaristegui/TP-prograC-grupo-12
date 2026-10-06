@@ -1,11 +1,13 @@
 package modelo.misiones;
-
+import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.misiones.Mision;
+import modelo.misiones.ResultadoMision;
 
 public class Retorno extends Mision{
 	private int energiaRequerida;
 	private int combustibleRequerido;
 	private int desgaste;
-	public Retorno(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste ){
+	public Retorno (AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste ){
 	    super(AC);
 	    this.combustibleRequerido = combustibleRequerido;
 	    this.energiaRequerida = energiaRequerida;
@@ -19,12 +21,11 @@ public class Retorno extends Mision{
 	protected int getDesgasteGenerado() { return desgaste; }
 
 	@Override
-	protected void ejecutar() {
+	public void ejecutar() {
 		AC.ordenarConsumo(this.getCombustibleRequerido(), this.getEnergiaRequerida(), this.getDesgasteGenerado());
 	}
 	@Override
-
-	protected ResultadoMision evaluar() {
+	public ResultadoMision evaluar() {
 		return ResultadoMision.EXITOSA;
 	} 
 }

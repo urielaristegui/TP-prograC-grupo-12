@@ -1,5 +1,9 @@
 package modelo.misiones;
 
+import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.misiones.Mision;
+import modelo.misiones.ResultadoMision;
+
 public class Intercepcion extends Mision {
 	private int combustibleRequerido;
 	private int energiaRequerida;
@@ -22,13 +26,13 @@ public class Intercepcion extends Mision {
 	protected int getDesgasteGenerado() { return desgaste; }
 
 	@Override
-	protected void ejecutar() {
+	public void ejecutar() {
 		AC.registrarEvento("M1 Intercepción: aproximando al objetivo");
 		AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
 	}
 
 	@Override
-	protected ResultadoMision evaluar() {
+	public ResultadoMision evaluar() {
 		return ResultadoMision.EXITOSA;
 	}
 }

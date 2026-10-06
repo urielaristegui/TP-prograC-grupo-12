@@ -22,12 +22,12 @@ public class Recoleccion extends Mision{
 	protected int getDesgasteGenerado() { return desgaste; }
 
 	@Override
-	protected void ejecutar() {
+	public void ejecutar() {
 		AC.registrarEvento("M2 Recolección: recolectando muestra en el punto de interés");
 		AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
 	}
 	
-	protected ResultadoMision evaluar() {
+	public ResultadoMision evaluar() {
 		return ResultadoMision.EXITOSA;
 	} 
 }
