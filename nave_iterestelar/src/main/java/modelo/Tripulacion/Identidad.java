@@ -1,7 +1,7 @@
-package Tripulacion;
+package modelo.Tripulacion;
 /**
- * Clase Identidad para identificar a los tripulantes de la nave. Tienen su id único y su nombre.
- * Id asignado en la creación.
+ * Clase Identidad para identificar a los tripulantes de la nave. Tienen su id ï¿½nico y su nombre.
+ * Id asignado en la creaciï¿½n.
  */
 public class Identidad {
     static int sig=-1;

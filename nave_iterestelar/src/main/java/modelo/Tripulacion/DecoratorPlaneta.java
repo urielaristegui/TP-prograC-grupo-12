@@ -1,5 +1,6 @@
-package Tripulacion;
-import Tripulacion.Tripulante;
+package modelo.Tripulacion;
+import modelo.Tripulacion.Tripulante;
+import modelo.Tripulacion.DecoratorPlaneta;
 /**
  * Patron decorator para calculo de haberes para los tripulantes.
  */

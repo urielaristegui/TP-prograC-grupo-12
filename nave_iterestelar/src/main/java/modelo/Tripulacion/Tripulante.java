@@ -1,4 +1,4 @@
-package Tripulacion;
+package modelo.Tripulacion;
 
 /**
  * Clase abstracta padre de todos los tipos de  tripulantes.

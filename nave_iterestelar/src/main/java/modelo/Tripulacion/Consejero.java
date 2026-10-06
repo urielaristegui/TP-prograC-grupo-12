@@ -1,5 +1,5 @@
-package Tripulacion;
-
+package modelo.Tripulacion;
+import  modelo.Tripulacion.Tripulante;
 import java.util.ArrayList;
 
 public class Consejero extends Tripulante{

@@ -7,9 +7,8 @@ import java.util.Map;
 
 import modelo.bitacora.Bitacora;
 import modelo.motorWarp.MotorWarp;
-import modelo.tripulacion.Cargo;
-import modelo.tripulacion.Tripulante;
-
+import modelo.Tripulacion.Tripulante;
+import Thread;
 /**
  * Representa una nave y administra sus recursos y tripulación.
  *
@@ -267,10 +266,22 @@ public abstract class Nave {
      * <b>post:</b> el motor pasa por EnWarp y termina Disponible.
      *
      * @throws IllegalStateException si el estado no permite saltar
+     * @throws InterruptedException si el hilo actual es interrumpido
      */
     public void saltar() {
-        motorWarp.entrarEnWarp();
-        motorWarp.volverAlDisponible();
+        try {
+            motorWarp.entrarEnWarp();
+            motorWarp.iniciarEnfriamiento();
+            // aplicas el retardo de 10 segundos (10000 milisegundos)
+           Thread.sleep(10000);
+            motorWarp.volverAlDisponible();
+
+        } catch (InterruptedException e) {
+            // Zona de recuperación: esto se ejecuta SÓLO si otro proceso cancela la espera de 10 segundos
+            Bitacora.getInstancia().registrar("Alerta: El ciclo de enfriamiento fue interrumpido forzosamente.");
+            // Forzamos al motor a volver a un estado seguro tras la emergencia
+            motorWarp.volverAlDisponible();
+        }
     }
 
 }

@@ -1,13 +1,14 @@
-import Tripulacion.Asistente;
-import Tripulacion.Identidad;
-import Tripulacion.Mision;
-import Tripulacion.Tripulante;
+package modelo.Tripulacion;
+import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.Tripulacion.Identidad;
+import modelo.misiones.Mision;
+import modelo.Tripulacion.Tripulante;
 
 public class Capitan extends Tripulante{
     private static Capitan instancia=null;
-    private Asistente ANav;
+    private AsistenteDeComandos ANav;
     
-    private Capitan(Identidad id,double ant,Asistente anav){
+    private Capitan(Identidad id,double ant,AsistenteDeComandos anav){
         super(id,ant);
         super.cargo= "Capitan";
         ANav= anav;
@@ -19,7 +20,7 @@ public class Capitan extends Tripulante{
     /**
      *Patron singleton para hacer solo 1 capitan.
      */
-    public static Capitan getInstancia(Identidad id,double ant,Asistente anav){
+    public static Capitan getInstancia(Identidad id,double ant,AsistenteDeComandos anav){
         if (instancia == null)
             return instancia= new Capitan(id,ant,anav);
         else
