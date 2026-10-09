@@ -4,12 +4,12 @@ package modelo.Tripulacion;
  * Clase abstracta padre de todos los tipos de  tripulantes.
  */
 
-public abstract class Tripulante{
+public abstract class Tripulante implements Haber{
     protected Identidad id;
     protected String cargo;
     protected double antiguedad;
     protected String origen;
-    protected double sueldo= 0;
+    protected double sueldob;
     
     /**
      *Constructor principal.
@@ -20,7 +20,6 @@ public abstract class Tripulante{
     
     
     public Tripulante(Identidad id,double ant){
-        sueldo= getSueldo();
         this.id= id;
         this.antiguedad= ant;
     }

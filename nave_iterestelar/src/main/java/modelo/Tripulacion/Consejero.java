@@ -3,6 +3,8 @@ import  modelo.Tripulacion.Tripulante;
 import java.util.ArrayList;
 
 public class Consejero extends Tripulante{
+    private double sueldob= 600;
+    private double bonusant = 0.05;
     
     private ArrayList<String> LConsejos= new ArrayList<>();
     
@@ -13,7 +15,7 @@ public class Consejero extends Tripulante{
     
     @Override
     public double getSueldo(){
-        return 600 + (600 * 0.05 * antiguedad);
+        return sueldob + (sueldob * bonusant * antiguedad) + 2 * LConsejos.length;
     }
     
     public void registrarConsejo(String consejo){
