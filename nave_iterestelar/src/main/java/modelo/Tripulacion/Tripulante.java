@@ -21,7 +21,7 @@ public abstract class Tripulante implements Haber{
      */
     public Tripulante(Identidad id,double ant){
         this.id= id;
-        setAntiguedad(antiguedad);
+        setAntiguedad(ant);
     }
 
     /**
