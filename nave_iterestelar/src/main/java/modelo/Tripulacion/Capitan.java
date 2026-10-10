@@ -30,7 +30,7 @@ public class Capitan extends Tripulante{
     }
     
     public void ejecutarMision(Mision M){
-        ANav.ejecutarMision(M); 
+        M.director();
     }
     public void echarTripulante(){}
 }

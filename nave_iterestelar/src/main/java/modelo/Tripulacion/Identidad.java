@@ -12,4 +12,8 @@ public class Identidad {
         id= sig++;
         this.nombre= nombre;
     }
+
+    public String getNombre(){
+        return nombre;
+    }
 }

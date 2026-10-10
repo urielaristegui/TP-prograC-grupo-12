@@ -26,9 +26,10 @@ public abstract class Tripulante implements Haber{
     
     public abstract double getSueldo();
     
-    public Identidad getID(){
-        return id;
+    public String getID(){
+        return id.getNombre();
     }
+
     public String getCargo(){
         return cargo;
     }
