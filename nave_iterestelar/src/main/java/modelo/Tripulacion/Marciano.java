@@ -3,7 +3,7 @@ import modelo.Tripulacion.Tripulante;
 import modelo.Tripulacion.DecoratorPlaneta;
 
 public class Marciano extends DecoratorPlaneta {
-    private double subsidio= 18;
+    private final double subsidio= 18;
 
     public Marciano(Haber haber){
         super.setHaber(haber);
@@ -11,7 +11,7 @@ public class Marciano extends DecoratorPlaneta {
 
     @Override
     public double getSueldo() {
-        // Suma los 30 PG de subsidio fijo para el planeta Marte
+        // Suma los 18 PG de subsidio fijo para el planeta Marte
         return getHaber().getSueldo() + subsidio;
     }
 }
