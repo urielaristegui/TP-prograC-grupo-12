@@ -5,17 +5,13 @@ import modelo.Tripulacion.DecoratorPlaneta;
  * Patron decorator para calculo de haberes para los tripulantes.
  */
 
-public abstract class DecoratorPlaneta extends Tripulante {
-    protected Tripulante tripulanteDecorado;
+public abstract class DecoratorPlaneta implements Haber {
+    private Haber haber;
 
-    public DecoratorPlaneta(Tripulante tripulanteDecorado) {
-
-        super(tripulanteDecorado.getID(), tripulanteDecorado.getAntiguedad());
-        this.tripulanteDecorado = tripulanteDecorado;
-        this.cargo = tripulanteDecorado.getCargo();
-        this.origen = tripulanteDecorado.getOrigen();
+    public Haber getHaber(){
+        return haber;
     }
-
-    @Override
-    public abstract double getSueldo();
+    public void setHaber(Haber haber){
+        this.haber= haber;
+    }
 }

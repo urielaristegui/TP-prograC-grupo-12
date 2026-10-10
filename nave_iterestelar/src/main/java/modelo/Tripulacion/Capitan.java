@@ -7,6 +7,8 @@ import modelo.Tripulacion.Tripulante;
 public class Capitan extends Tripulante{
     private static Capitan instancia=null;
     private AsistenteDeComandos ANav;
+    private double sueldob= 1000;
+    private double bonusant= 0.2;
     
     private Capitan(Identidad id,double ant,AsistenteDeComandos anav){
         super(id,ant);
@@ -15,7 +17,7 @@ public class Capitan extends Tripulante{
     }
     @Override
     public double getSueldo(){
-        return 1000 + (1000 * 0.2 * antiguedad);
+        return sueldob + (sueldob * bonusant * antiguedad);
     }
     /**
      *Patron singleton para hacer solo 1 capitan.
