@@ -40,4 +40,5 @@ public class AsistenteDeComandos {
 	public void salta() {
 		nave.saltar();
 	}
+
 }
