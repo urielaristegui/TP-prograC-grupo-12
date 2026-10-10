@@ -3,7 +3,7 @@ import modelo.Tripulacion.Tripulante;
 import modelo.Tripulacion.DecoratorPlaneta;
 
 public class Vulcano extends DecoratorPlaneta {
-    private subsidio= 30;
+    private double subsidio= 30;
 
     public Vulcano(Haber haber){
         super.setHaber(haber);

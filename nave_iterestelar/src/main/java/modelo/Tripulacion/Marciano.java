@@ -3,7 +3,7 @@ import modelo.Tripulacion.Tripulante;
 import modelo.Tripulacion.DecoratorPlaneta;
 
 public class Marciano extends DecoratorPlaneta {
-    private subsidio= 18;
+    private double subsidio= 18;
 
     public Marciano(Haber haber){
         super.setHaber(haber);

@@ -1,5 +1,7 @@
 package modelo.motorWarp;
 
+import modelo.bitacora.Bitacora;
+
 public class EnWarp implements modelo.motorWarp.State {
     private MotorWarp motorWarp;
 
@@ -8,18 +10,18 @@ public class EnWarp implements modelo.motorWarp.State {
      * <b>pre:</b>motorWarp != null  <br>
      * <b>post:</b> se inicializa el atributo motorWarp <br>
      */
-   public EnWarp(MotorWarp motorWarp) {
-       this.motorWarp = motorWarp;
-   }
+    public EnWarp(MotorWarp motorWarp) {
+        this.motorWarp = motorWarp;
+    }
 
     /**
      * intenta entrar en warp <br>
      * <b>post:</b> error <br>
      */
     @Override
-   public void entrarEnWarp() {
-       motorWarp.bitacora.registrar("el motor permanece en warp");
-   }
+    public void entrarEnWarp() {
+        Bitacora.getInstance().registrar("el motor permanece en warp");
+    }
 
     /**
      * intenta iniciar el enfriamiento <br>
@@ -28,7 +30,7 @@ public class EnWarp implements modelo.motorWarp.State {
     @Override
     public void iniciarEnfriamiento() {
         motorWarp.setState(new Enfriamento(motorWarp));
-        motorWarp.bitacora.registrar("iniciando enfriamiento");
+        Bitacora.getInstance().registrar("iniciando enfriamiento");
     }
 
     /**
@@ -37,7 +39,7 @@ public class EnWarp implements modelo.motorWarp.State {
      */
     @Override
     public void volverADisponible() {
-        motorWarp.bitacora.registrar("ERROR: el motor no puede volver a disponible sin haberse enfriado");
+        Bitacora.getInstance().registrar("ERROR: el motor no puede volver a disponible sin haberse enfriado");
     }
 
 
@@ -47,6 +49,6 @@ public class EnWarp implements modelo.motorWarp.State {
      */
     @Override
     public void prepararSalto() {
-        motorWarp.bitacora.registrar("ERROR: el motor no puede preparar el salto en warp");
+        Bitacora.getInstance().registrar("ERROR: el motor no puede preparar el salto en warp");
     }
 }

@@ -1,5 +1,8 @@
 package modelo.motorWarp;
 
+
+import modelo.bitacora.Bitacora;
+
 public class PreparandoSalto implements modelo.motorWarp.State {
     private MotorWarp motorWarp;
 
@@ -18,7 +21,7 @@ public class PreparandoSalto implements modelo.motorWarp.State {
      */
     @Override
     public void prepararSalto() {
-        motorWarp.bitacora.registrar("ERROR: el motor ya esta preparando el salto");
+        Bitacora.getInstance().registrar("ERROR: el motor ya esta preparando el salto");
     }
 
     /**
@@ -28,7 +31,7 @@ public class PreparandoSalto implements modelo.motorWarp.State {
     @Override
     public void entrarEnWarp() {
         motorWarp.setState(new EnWarp(motorWarp));
-        motorWarp.bitacora.registrar("entrando en warp");
+        Bitacora.getInstance().registrar("entrando en warp");
     }
 
     /**
@@ -37,7 +40,7 @@ public class PreparandoSalto implements modelo.motorWarp.State {
      */
     @Override
     public void iniciarEnfriamiento() {
-        motorWarp.bitacora.registrar("ERROR: el motor no puede iniciar el enfriamiento sin haber terminado el salto");
+        Bitacora.getInstance().registrar("ERROR: el motor no puede iniciar el enfriamiento sin haber terminado el salto");
     }
 
     /**
@@ -46,6 +49,6 @@ public class PreparandoSalto implements modelo.motorWarp.State {
      */
     @Override
     public void volverADisponible() {
-        motorWarp.bitacora.registrar("ERROR:el motor no puede volver a disponible sin haber terminado el salto");
+        Bitacora.getInstance().registrar("ERROR:el motor no puede volver a disponible sin haber terminado el salto");
     }
 }
