@@ -6,6 +6,7 @@ import modelo.misiones.ResultadoMision;
 public abstract class Mision {
 	protected AsistenteDeComandos AC;
 	protected ResultadoMision resultado;
+	protected InformeMision informe;
 
 	public Mision(AsistenteDeComandos AC) {
 		this.AC=AC;
@@ -43,9 +44,24 @@ public abstract class Mision {
 	        AC.salta();
 	    }
 	    AC.registrarEvento(getClass().getSimpleName() + ": cerrada, resultado " + resultado);
-		// armado del InformeMision (E1-10): pendiente
-	}
+	    String recursos = "Combustible: " + getCombustibleRequerido()
+						+ ", Energía: " + getEnergiaRequerida()
+						+ ", Desgaste: " + getDesgasteGenerado();
 
+	    informe = new InformeMision.Builder()
+	    		
+		.misionEjecutada(prefijo)
+		.resultadoFinal(resultado.toString())
+		.recursosConsumidos(recursos)
+		.estadoNave(AC.snapshotEstadoNave())
+		.eventos(AC.eventosDe(prefijo))
+		.build();
+	}
+	
+	public InformeMision getInforme() {
+		return informe;
+	}
+	
 	protected abstract int getCombustibleRequerido();
 	protected abstract int getEnergiaRequerida();
 	protected abstract int getDesgasteGenerado();

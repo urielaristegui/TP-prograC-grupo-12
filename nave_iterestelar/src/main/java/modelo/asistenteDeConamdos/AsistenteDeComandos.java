@@ -40,4 +40,24 @@ public class AsistenteDeComandos {
 	public void salta() {
 		nave.saltar();
 	}
+	
+	/ NUEVO: snapshot de texto del estado de la nave, para InformeMision.
+	// Usa sólo getters que Nave ya expone públicamente.
+	public String snapshotEstadoNave() {
+		return "Combustible: " + nave.getCombustible()
+				+ ", Energía: " + nave.getEnergia()
+				+ ", Desgaste: " + nave.getDesgaste()
+				+ (nave.requiereMantenimiento() ? " (requiere mantenimiento)" : "");
+	}
+ 
+	// NUEVO: filtra los eventos de la Bitácora que correspondan a una misión,
+	// buscando el prefijo (nombre de clase) que Mision ya usa al registrar.
+	// LIMITACIÓN: si hay dos instancias del mismo tipo de misión corriendo,
+	// esto no las distingue -- filtra por nombre de clase, no por instancia.
+	public List<String> eventosDe(String prefijo) {
+		return bitacora.getRegistro().stream()
+				.filter(evento -> evento.contains(prefijo))
+				.collect(Collectors.toList());
+	}
+}
 }
