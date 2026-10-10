@@ -82,7 +82,8 @@ public class PruebaHaberes {
         }
         System.out.println("ADVERTENCIA: el ejemplo solo demuestra anidamiento tecnico."
                 + " Una persona no deberia tener dos origenes a la vez.");
-        System.out.println("PENDIENTE E1-08: agregar y demostrar un decorador de otro concepto remunerativo.");
+        System.out.println("[PENDIENTE E1-08] Hace falta un decorador para un concepto distinto "
+                + "al origen. Dos origenes apilados NO constituyen una liquidacion valida.");
 
         System.out.println("\n[OK] Calculados los 4 cargos y los 3 subsidios sin usar JUnit");
         System.out.println("=== FIN DE LA DEMOSTRACION DE HABERES ===");

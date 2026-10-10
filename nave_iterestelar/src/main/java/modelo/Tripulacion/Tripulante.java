@@ -21,7 +21,7 @@ public abstract class Tripulante implements Haber{
      */
     public Tripulante(Identidad id,double ant){
         this.id= id;
-        this.antiguedad= ant;
+        setAntiguedad(antiguedad);
     }
 
     /**
@@ -46,18 +46,23 @@ public abstract class Tripulante implements Haber{
     public String getOrigen(){
         return origen;
     }
-    
+
 
 
     /**
-     * Modifica la antigüedad del tripulante.
+     * Establece la antigüedad del tripulante.
      *
-     * @param a Nueva antigüedad en años.
-     *          <p><b>Precondición:</b> {@code a >= 0}. No se admiten valores negativos.</p>
-     *          <p><b>Postcondición:</b> El atributo antigüedad del tripulante queda actualizado con el nuevo valor válido.</p>
+     * @param a años de antigüedad, valor no negativo
+     * @throws IllegalArgumentException si la antigüedad es negativa
      */
-    public void setAntiguedad(double a){
-        antiguedad= a;
+    public void setAntiguedad(double a) {
+        if (a < 0 || !Double.isFinite(a)) {
+            throw new IllegalArgumentException(
+                    "La antigüedad debe ser un número finito no negativo"
+            );
+        }
+
+        this.antiguedad = a;
     }
 
 }

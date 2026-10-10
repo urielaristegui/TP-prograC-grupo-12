@@ -21,6 +21,7 @@ public class EscenarioB {
         System.out.println("\n--- 1. PREPARACION ---");
         Nave nave = NaveFactory.crearNave(TipoNave.EXPLORADORA, 10);
         Bitacora bitacora = Bitacora.getInstance();
+        bitacora.getRegistro().clear(); // Aislar esta demostracion de otras ejecuciones.
         AsistenteDeComandos asistente = new AsistenteDeComandos(nave, bitacora);
         Capitan capitan = Capitan.getInstancia(new Identidad("Capitan B"), 1, asistente);
         nave.agregarTripulante(capitan);
@@ -39,7 +40,8 @@ public class EscenarioB {
         Mision mision = new Intercepcion(asistente, 70, 5, 4);
         boolean completada = mision.director();
         System.out.println("Mision completada: " + completada + " (esperado: false)");
-        System.out.println("Informe: " + mision.getInforme() + " (esperado: null, no llego al cierre)");
+        System.out.println("Informe generado: " + mision.getInforme()
+                + " (esperado: null; la mision no llego al cierre)");
 
         // 3. Comprobar que ningún recurso se modificó.
         System.out.println("\n--- 3. COMPROBAR AUSENCIA DE CAMBIOS PARCIALES ---");

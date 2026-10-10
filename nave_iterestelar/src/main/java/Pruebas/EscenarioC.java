@@ -16,6 +16,7 @@ public class EscenarioC {
         // 1. Crear un motor independiente en estado Disponible.
         MotorWarp motor = new MotorWarp();
         Bitacora bitacora = Bitacora.getInstance();
+        bitacora.getRegistro().clear(); // Bitacora inicial vacia para reproducibilidad.
         System.out.println("\n--- 1. ESTADO INICIAL ---");
         System.out.println("Actual: " + motor.getState().getClass().getSimpleName());
         if (!(motor.getState() instanceof Disponible)) {

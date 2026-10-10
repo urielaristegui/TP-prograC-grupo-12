@@ -9,12 +9,13 @@ import modelo.misiones.InformeMision;
 import modelo.misiones.Intercepcion;
 import modelo.misiones.Mision;
 import modelo.misiones.Recoleccion;
+import modelo.misiones.ResultadoMision;
 import modelo.misiones.Retorno;
 import modelo.nave.Nave;
 import modelo.nave.NaveFactory;
 import modelo.nave.TipoNave;
 
-/** Escenario A de la ficha E1: Factory + tripulación + ciclo completo M-01/M-02/M-03. */
+/** Escenario A: Factory, tripulación y ciclo completo de M-01, M-02 y M-03. */
 public class EscenarioA {
 
     public static void main(String[] args) {
@@ -26,86 +27,118 @@ public class EscenarioA {
         Nave carguero = NaveFactory.crearNave(TipoNave.CARGUERO, 2);
         Nave combate = NaveFactory.crearNave(TipoNave.COMBATE, 3);
 
-        System.out.println("Exploradora: " + exploradora.getCombustible()
-                + " combustible, " + exploradora.getEnergia() + " energia");
-        System.out.println("Carguero: " + carguero.getCombustible()
-                + " combustible, " + carguero.getEnergia() + " energia");
-        System.out.println("Combate: " + combate.getCombustible()
-                + " combustible, " + combate.getEnergia() + " energia");
+        System.out.println("Exploradora: combustible=" + exploradora.getCombustible()
+                + ", energia=" + exploradora.getEnergia());
+        System.out.println("Carguero: combustible=" + carguero.getCombustible()
+                + ", energia=" + carguero.getEnergia());
+        System.out.println("Combate: combustible=" + combate.getCombustible()
+                + ", energia=" + combate.getEnergia());
 
         if (exploradora.getCombustible() != 60 || exploradora.getEnergia() != 80
                 || carguero.getCombustible() != 100 || carguero.getEnergia() != 60
                 || combate.getCombustible() != 80 || combate.getEnergia() != 100) {
-            throw new IllegalStateException("ERROR: los recursos iniciales no son los de la ficha E1");
+            throw new IllegalStateException("Las naves no tienen los recursos iniciales oficiales");
         }
 
-        // 2. Seleccionar la Exploradora y asignarle una tripulación válida.
+        // 2. Formar una tripulación válida para la Exploradora.
         System.out.println("\n--- 2. TRIPULACION ---");
         Nave nave = exploradora;
         Bitacora bitacora = Bitacora.getInstance();
+        bitacora.getRegistro().clear(); // Mantener la demostración reproducible.
         AsistenteDeComandos asistente = new AsistenteDeComandos(nave, bitacora);
 
-        Capitan capitan = Capitan.getInstancia(
-                new Identidad("Santiago"), 2, asistente);
+        Capitan capitan = Capitan.getInstancia(new Identidad("Santiago"), 2, asistente);
         nave.agregarTripulante(capitan);
         for (String nombre : new String[]{"Ana", "Juan", "Pedro", "Maria"}) {
             nave.agregarTripulante(new Alferez(new Identidad(nombre), 1));
         }
-
-        System.out.println("Cantidad: " + nave.getTripulacion().size());
+        System.out.println("Tripulantes: " + nave.getTripulacion().size());
         System.out.println("Tripulacion valida: " + nave.tieneTripulacionValida());
-        if (!nave.tieneTripulacionValida()) {
-            throw new IllegalStateException("ERROR: la tripulacion no es valida");
-        }
         System.out.println("Estado inicial: " + asistente.snapshotEstadoNave());
+        if (!nave.tieneTripulacionValida()) {
+            throw new IllegalStateException("La tripulación debería ser válida");
+        }
 
-        // 3. M-01: costo oficial E1 = 4 combustible, 5 energia, 4 desgaste.
+        // 3. M-01: 4 de combustible, 5 de energía y 4 de desgaste.
         System.out.println("\n--- 3. M-01: INTERCEPCION Y ASISTENCIA ---");
         Mision m01 = new Intercepcion(asistente, 4, 5, 4);
         capitan.ejecutarMision(m01);
-        mostrarMision(m01, asistente, nave, 56, 75, 4);
+        boolean accionM01 = mostrarMision("M-01", m01, nave, 56, 75, 4,
+                "Combustible: 4, Energía: 5, Desgaste: 4", "M1 Intercepción");
 
-        // 4. M-02: costo oficial E1 = 4 combustible, 5 energia, 4 desgaste.
+        // 4. M-02: 4 de combustible, 5 de energía y 4 de desgaste.
         System.out.println("\n--- 4. M-02: RECOLECCION ---");
         Mision m02 = new Recoleccion(asistente, 4, 5, 4);
         capitan.ejecutarMision(m02);
-        mostrarMision(m02, asistente, nave, 52, 70, 8);
+        boolean accionM02 = mostrarMision("M-02", m02, nave, 52, 70, 8,
+                "Combustible: 4, Energía: 5, Desgaste: 4", "M2 Recolección");
 
-        // 5. M-03: costo oficial E1 = 4 combustible, 0 energia, 4 desgaste.
+        // 5. M-03: 4 de combustible, 0 de energía y 4 de desgaste.
         System.out.println("\n--- 5. M-03: RETORNO SEGURO ---");
         Mision m03 = new Retorno(asistente, 4, 0, 4);
         capitan.ejecutarMision(m03);
-        mostrarMision(m03, asistente, nave, 48, 70, 12);
+        boolean accionM03 = mostrarMision("M-03", m03, nave, 48, 70, 12,
+                "Combustible: 4, Energía: 0, Desgaste: 4", "M3 Retorno");
 
-        // 6. Mostrar los eventos de las tres misiones y los estados del motor.
-        System.out.println("\n--- 6. BITACORA COMPLETA (ORDEN DE REGISTRO) ---");
+        // 6. Visualizar el orden de los eventos registrados.
+        System.out.println("\n--- 6. BITACORA COMPLETA ---");
         for (String evento : bitacora.getRegistro()) {
             System.out.println(evento);
         }
 
-        // El informe actual genera objeto y recursos, pero no completa todas las listas.
-        if (m01.getInforme().getAccionesPrincipales().isEmpty()
-                || m02.getInforme().getAccionesPrincipales().isEmpty()
-                || m03.getInforme().getAccionesPrincipales().isEmpty()) {
-            System.out.println("\nPENDIENTE E1-10: completar las acciones principales en InformeMision.");
+        System.out.println("\n--- 7. BALANCE DE LA DEMOSTRACION ---");
+        System.out.println("[OK] Las tres misiones finalizaron EXITOSAS con recursos correctos");
+        if (!accionM01 || !accionM02 || !accionM03) {
+            System.out.println("[PENDIENTE E1-10] El informe no refleja todas las acciones "
+                    + "operativas de alguna misión. Revisar Mision.cerrar(), "
+                    + "AsistenteDeComandos.eventosDe() y Retorno.ejecutar().");
+        } else {
+            System.out.println("[OK] Todas las acciones operativas figuran en los informes");
         }
-        System.out.println("\n=== FIN DEL ESCENARIO A ===");
+        System.out.println("=== FIN DEL ESCENARIO A ===");
     }
 
-    /** Muestra cada resultado y falla si no coincide con los recursos esperados. */
-    private static void mostrarMision(Mision mision, AsistenteDeComandos asistente,
-                                      Nave nave, int combustible, int energia, int desgaste) {
+    /** Imprime todos los campos del InformeMision y verifica lo esencial. */
+    private static boolean mostrarMision(String codigo, Mision mision, Nave nave,
+                                         int combustibleFinal, int energiaFinal, int desgasteFinal,
+                                         String recursosEsperados, String prefijoAccion) {
         InformeMision informe = mision.getInforme();
-        System.out.println("Informe: " + informe);
-        System.out.println("Estado final: " + asistente.snapshotEstadoNave());
-        System.out.println("Esperado: combustible=" + combustible + ", energia=" + energia
-                + ", desgaste=" + desgaste + ", resultado=EXITOSA");
-
-        if (informe == null || !"EXITOSA".equals(informe.getResultado())
-                || nave.getCombustible() != combustible || nave.getEnergia() != energia
-                || nave.getDesgaste() != desgaste) {
-            throw new IllegalStateException("ERROR: la mision no cumple el resultado esperado");
+        if (informe == null) {
+            throw new IllegalStateException(codigo + ": no se generó el informe");
         }
-        System.out.println("[OK] Mision e invariantes de recursos verificadas");
+
+        System.out.println("Mision ejecutada: " + informe.getMisionEjecutada());
+        System.out.println("Resultado: " + informe.getResultado());
+        System.out.println("Recursos consumidos: " + informe.getRecursosConsumidos());
+        System.out.println("Estado final (informe): " + informe.getEstadoNave());
+        System.out.println("Acciones principales:");
+        for (String accion : informe.getAccionesPrincipales()) {
+            System.out.println("  - " + accion);
+        }
+        System.out.println("Observaciones: " + (informe.getObservaciones() == null
+                || informe.getObservaciones().isBlank()
+                ? "(sin observaciones)" : informe.getObservaciones()));
+
+        String estadoEsperado = "Combustible: " + combustibleFinal
+                + ", Energía: " + energiaFinal + ", Desgaste: " + desgasteFinal;
+        if (!informe.getMisionEjecutada().equals(mision.getClass().getSimpleName())
+                || informe.getResultado() != ResultadoMision.EXITOSA
+                || !informe.getRecursosConsumidos().equals(recursosEsperados)
+                || !informe.getEstadoNave().equals(estadoEsperado)
+                || nave.getCombustible() != combustibleFinal
+                || nave.getEnergia() != energiaFinal
+                || nave.getDesgaste() != desgasteFinal
+                || informe.getAccionesPrincipales().isEmpty()) {
+            throw new IllegalStateException(codigo + ": resultado o recursos inconsistentes");
+        }
+        System.out.println("[OK] " + codigo + ": resultado, recursos e informe coherentes");
+
+        // Comprobar si el informe contiene además la acción real del objetivo.
+        boolean accionPresente = informe.getAccionesPrincipales().stream()
+                .anyMatch(accion -> accion.contains(prefijoAccion));
+        if (!accionPresente) {
+            System.out.println("[PENDIENTE] No figura la acción operativa: " + prefijoAccion);
+        }
+        return accionPresente;
     }
 }
