@@ -225,19 +225,21 @@ public abstract class Nave {
      * @return true si hay al menos cinco integrantes
      *         y al menos uno tiene cargo de capitán
      */
+
     public boolean tieneTripulacionValida() {
         if (tripulacion.size() < TRIPULACION_MINIMA) {
             return false;
         }
 
         for (Tripulante tripulante : tripulacion.values()) {
-            if (tripulante.getCargo() == "CAPITAN") {
+            if ("Capitan".equals(tripulante.getCargo())) {
                 return true;
             }
         }
 
         return false;
     }
+
 
     private void validarIdTripulante(String idTripulante) {
         if (idTripulante == null || idTripulante.isBlank()) {
@@ -246,17 +248,28 @@ public abstract class Nave {
         }
     }
 
+
     /**
      * Solicita al motor preparar el salto.
      *
-     * <b>pre:</b> el motor está Disponible.
+     * <b>pre:</b> la nave tiene una tripulación válida
+     * y el motor está Disponible.
+     *
      * <b>post:</b> el motor está PreparandoSalto.
      *
-     * @throws IllegalStateException si el estado no permite preparar el salto
+     * @throws IllegalStateException si la tripulación es inválida
+     *         o el motor no permite preparar el salto.
      */
     public void prepararSalto() {
+        if (!tieneTripulacionValida()) {
+            throw new IllegalStateException(
+                    "La nave no tiene una tripulación válida"
+            );
+        }
+
         motorWarp.prepararSalto();
     }
+
 
     /**
      * Ejecuta el salto y lo finaliza en el mismo llamado.
