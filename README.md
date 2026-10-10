@@ -8,7 +8,7 @@ La Entrega 1 se enfoca en el núcleo orientado a objetos. No requiere base de da
 
 ## 1. Requisitos de ejecución
 
-- **JDK 26**, configurado como SDK del proyecto y como JDK utilizado por Maven. El archivo `nave_iterestelar/pom.xml` declara `maven.compiler.source` y `maven.compiler.target` en `26`.
+- **JDK 26**, configurado como SDK del proyecto y como JDK utilizado por Maven. El archivo `nave_interestelar` declara `maven.compiler.source` y `maven.compiler.target` en `26`.
 - **Apache Maven**, preferentemente versión 3.9 o superior, accesible desde una terminal o desde el IDE.
 - Un IDE con soporte de Maven y Java, por ejemplo IntelliJ IDEA, o una terminal.
 - No se requieren bibliotecas externas, servicios, cuentas, variables secretas ni conexión a una base de datos para ejecutar esta entrega. La primera compilación de Maven puede requerir Internet para descargar plugins.
@@ -27,7 +27,7 @@ Las versiones de Java utilizadas por `java`, `javac` y Maven deben ser compatibl
 
 ## 2. Ubicación del proyecto y estructura
 
-El archivo `pom.xml` **no está en la raíz del repositorio**, sino dentro de `nave_iterestelar/`. Todos los comandos Maven que siguen deben ejecutarse en esa carpeta.
+El archivo `pom.xml` **no está en la raíz del repositorio**, sino dentro de `nave_interestelar`. Todos los comandos Maven que siguen deben ejecutarse en esa carpeta.
 
 ```text
 TP-prograC-grupo-12-main/
@@ -75,7 +75,7 @@ El `pom.xml` actual no declara una clase principal en el manifiesto del JAR. Por
 
 ## 4. Cómo iniciar el sistema
 
-Compilar primero desde `nave_iterestelar/`:
+Compilar primero desde `nave_interestelar`:
 
 ```bash
 mvn clean compile
@@ -89,13 +89,13 @@ java -cp target/classes Prueba
 
 Este programa crea una nave Exploradora con su tripulación y muestra comprobaciones básicas de haberes, recursos, búsqueda de tripulantes y bitácora.
 
-También es posible ejecutar cada clase desde IntelliJ IDEA mediante la acción **Run** sobre su método `main`. Al importar el proyecto, abrir `nave_iterestelar/pom.xml` como proyecto Maven y seleccionar **JDK 26**.
+También es posible ejecutar cada clase desde IntelliJ IDEA mediante la acción **Run** sobre su método `main`. Al importar el proyecto, abrir `nave_interestelar` como proyecto Maven y seleccionar **JDK 26**.
 
 ## 5. Cómo ejecutar las verificaciones reproducibles
 
 Las verificaciones se implementan como **programas Java independientes con `main()`**, sin dependencia de JUnit. Se ejecutan sobre las clases compiladas del mismo proyecto.
 
-Después de `mvn clean compile`, ejecutar desde `nave_iterestelar/`:
+Después de `mvn clean compile`, ejecutar desde `nave_interestelar`:
 
 ```bash
 # Escenario A: creación por Factory y misiones M-01, M-02 y M-03
@@ -169,7 +169,7 @@ Crear previamente la carpeta `docs/evidencias/` en la raíz del repositorio. En 
 ## 6. Configuración local necesaria
 
 1. Clonar o descargar el repositorio.
-2. Abrir la carpeta `nave_iterestelar/` como proyecto Maven.
+2. Abrir la carpeta `nave_interestelar` como proyecto Maven.
 3. Seleccionar JDK 26 tanto para el proyecto como para Maven y recargar el `pom.xml`.
 4. Situarse en la carpeta del `pom.xml` antes de compilar.
 5. Ejecutar los `main()` **en procesos independientes**. Los componentes Singleton, como Capitán y Bitácora, conservan estado durante un mismo proceso Java; esto puede alterar los resultados si se reutiliza ese proceso para varias demostraciones.
