@@ -8,7 +8,6 @@ import java.util.Map;
 import modelo.bitacora.Bitacora;
 import modelo.motorWarp.MotorWarp;
 import modelo.Tripulacion.Tripulante;
-import Thread;
 /**
  * Representa una nave y administra sus recursos y tripulación.
  *
@@ -232,7 +231,7 @@ public abstract class Nave {
         }
 
         for (Tripulante tripulante : tripulacion.values()) {
-            if (tripulante.getCargo() == Cargo.CAPITAN) {
+            if (tripulante.getCargo() == "CAPITAN") {
                 return true;
             }
         }
@@ -278,7 +277,7 @@ public abstract class Nave {
 
         } catch (InterruptedException e) {
             // Zona de recuperación: esto se ejecuta SÓLO si otro proceso cancela la espera de 10 segundos
-            Bitacora.getInstancia().registrar("Alerta: El ciclo de enfriamiento fue interrumpido forzosamente.");
+            Bitacora.getInstance().registrar("Alerta: El ciclo de enfriamiento fue interrumpido forzosamente.");
             // Forzamos al motor a volver a un estado seguro tras la emergencia
             motorWarp.volverAlDisponible();
         }
