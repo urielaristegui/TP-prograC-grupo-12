@@ -61,7 +61,7 @@ public abstract class Nave {
         this.combustible = combustible;
         this.energia = energia;
         this.desgaste = 0;
-        this.motorWarp = new MotorWarp(Bitacora.getInstance());
+        this.motorWarp = new MotorWarp();
         this.tripulacion = new HashMap<>();
     }
 

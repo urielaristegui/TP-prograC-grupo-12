@@ -1,11 +1,7 @@
-import modelo.Tripulacion.Alferez;
-import modelo.Tripulacion.Capitan;
-import modelo.Tripulacion.Consejero;
-import modelo.Tripulacion.Identidad;
-import modelo.Tripulacion.Teniente;
-import modelo.Tripulacion.Tripulante;
+import modelo.Tripulacion.*;
 import modelo.asistenteDeComandos.AsistenteDeComandos;
 import modelo.bitacora.Bitacora;
+import modelo.motorWarp.MotorWarp;
 import modelo.nave.Nave;
 import modelo.nave.NaveFactory;
 import modelo.nave.TipoNave;
@@ -14,37 +10,37 @@ import modelo.nave.TipoNave;
  */
 public final class Prueba {
     public static void main(String[] args) {
-        Nave nave = NaveFactory.crearNave(TipoNave.EXPLORADORA, 1);
+        System.out.println("--- INICIANDO PRUEBA DE EVIDENCIAS FUNCIONALES ---");
+
+        // 1. Prueba de invariante en Bitácora: Forzar un evento nulo/vacío
+        System.out.println("\n1. Probando invariante de Bitácora...");
         Bitacora bitacora = Bitacora.getInstance();
-        AsistenteDeComandos asistente = new AsistenteDeComandos(nave, bitacora);
+        try {
+            bitacora.registrar("");
+        } catch (IllegalArgumentException e) {
+            // Se captura la excepción en el cliente para evitar que el programa colapse
+            System.out.println("Validación exitosa - El sistema rechazó el evento: " + e.getMessage());
+        }
 
-        Capitan capitan = Capitan.getInstancia(
-                new Identidad("Capitán"), 10, asistente);
-        Tripulante alferez = new Alferez(new Identidad("Alférez"), 3);
-        Tripulante consejero = new Consejero(new Identidad("Consejero"), 4);
-        Tripulante teniente = new Teniente(new Identidad("Teniente"), 5);
-        Tripulante segundoAlferez = new Alferez(
-                new Identidad("Alférez auxiliar"), 2);
+        // 2. Prueba del Motor Warp: Secuencia Válida
+        System.out.println("\n2. Ejecutando secuencia válida del Motor Warp...");
+        MotorWarp motor = new MotorWarp(); // La fábrica asegurará que inicie en estado válido (Disponible)
 
-        nave.agregarTripulante(capitan);
-        nave.agregarTripulante(alferez);
-        nave.agregarTripulante(consejero);
-        nave.agregarTripulante(teniente);
-        nave.agregarTripulante(segundoAlferez);
+        motor.prepararSalto();        // Disponible -> Preparando Salto
+        motor.entrarEnWarp();         // Preparando Salto -> En Warp
+        motor.iniciarEnfriamiento();  // En Warp -> Enfriamiento
+        motor.volverAlDisponible();   // Enfriamiento -> Disponible
 
-        System.out.println("Nave: " + nave.getId());
-        System.out.println("Tripulantes: " + nave.getTripulacion().size());
-        System.out.println("Tripulación válida: " + nave.tieneTripulacionValida());
-        System.out.println("Sueldo del capitán: " + capitan.getSueldo());
-        System.out.println("Capitán encontrado: "
-                + (nave.buscarTripulante(String.valueOf(capitan.getID())) != null));
+        // 3. Prueba del Motor Warp: Transición Inválida
+        System.out.println("\n3. Forzando transición inválida...");
+        // El motor está Disponible, intentar entrar en Warp directamente debe ser rechazado
+        motor.entrarEnWarp();
 
-        nave.consumirRecursos(10, 15, 20);
-        System.out.println("Combustible restante: " + nave.getCombustible());
-        System.out.println("Energía restante: " + nave.getEnergia());
-        System.out.println("Desgaste: " + nave.getDesgaste());
-
-        asistente.registrarEvento("Prueba ejecutada correctamente");
-        System.out.println("Eventos en bitácora: " + bitacora.getRegistro().size());
+        // 4. Comprobación de separación de E/S y orden cronológico
+        System.out.println("\n--- EXTRACCIÓN DEL REGISTRO TEMPORAL (BITÁCORA) ---");
+        // El Main solicita los datos y se encarga de imprimirlos, protegiendo el dominio
+        for (String evento : Bitacora.getInstance().getRegistro()) {
+            System.out.println(evento);
+        }
     }
 }
