@@ -3,7 +3,7 @@ import modelo.Tripulacion.Tripulante;
 import modelo.Tripulacion.DecoratorPlaneta;
 
 public class Terricola extends DecoratorPlaneta {
-    private subsidio= 20;
+    private double subsidio= 20;
 
     public Terricola(Haber haber){
         super.setHaber(haber);

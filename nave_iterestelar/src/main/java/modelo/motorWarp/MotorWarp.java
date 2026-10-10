@@ -1,24 +1,13 @@
 package modelo.motorWarp;
-import modelo.bitacora.Bitacora;
 
 public class MotorWarp {
-    private modelo.motorWarp.State state;
-    protected Bitacora bitacora;
+    ;private State state;
 
     /**
      * Constructor de la clase MotorWarp<br>
-     * <b>pre:</b>bitacora != null  <br>
-     * <b>post:</b> se inicializa el atributo bitacora <br>
-     *  * <b>trow: bitacora != null</b>
-     * @param bitacora
      */
-    public MotorWarp(Bitacora bitacora) {
-        if (bitacora == null) {
-            throw new IllegalArgumentException("La bitacora no puede ser null");
-        }
-
+    public MotorWarp() {
         setState(new Disponible(this));
-        this.bitacora = bitacora;
     }
 
     /**
@@ -32,28 +21,6 @@ public class MotorWarp {
             throw new IllegalArgumentException("El state no puede ser null");
         }
         this.state = state;
-    }
-
-    /**
-     * cambia la bitacora<br>
-     * <b>post:</b> se inicializa el atributo bitacora <br>
-     * <b>trow: bitacora != null</b>
-     * @param bitacora
-     */
-    public void setBitacora(Bitacora bitacora){
-        if (bitacora== null){
-            throw new IllegalArgumentException("La bitacora no puede ser null");
-        }
-        this.bitacora = bitacora;
-    }
-
-    /**
-     * devuelve la bitacora<br>
-     * <b>post:</b> se inicializa el atributo bitacora <br>
-     * @return
-     */
-    public Bitacora getBitacora(){
-        return bitacora;
     }
 
     /**

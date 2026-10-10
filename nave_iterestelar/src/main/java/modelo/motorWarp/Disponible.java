@@ -1,5 +1,7 @@
 package modelo.motorWarp;
 
+import modelo.bitacora.Bitacora;
+
 public class Disponible implements modelo.motorWarp.State {
     private MotorWarp motorWarp;
 
@@ -19,7 +21,7 @@ public class Disponible implements modelo.motorWarp.State {
     @Override
     public void prepararSalto() {
         motorWarp.setState(new PreparandoSalto(motorWarp));
-        motorWarp.bitacora.registrar("preparando salto");
+        Bitacora.getInstance().registrar("preparando salto");
     }
 
     /**
@@ -28,7 +30,7 @@ public class Disponible implements modelo.motorWarp.State {
      */
     @Override
     public void entrarEnWarp(){
-        motorWarp.bitacora.registrar("ERROR: no se puede entrar en warp sin preparar el salto");
+        Bitacora.getInstance().registrar("ERROR: no se puede entrar en warp sin preparar el salto");
     }
 
     /**
@@ -37,7 +39,7 @@ public class Disponible implements modelo.motorWarp.State {
      */
     @Override
     public void iniciarEnfriamiento() {
-         motorWarp.bitacora.registrar("ERROR: no requiere enfriamiento");
+        Bitacora.getInstance().registrar("ERROR: no requiere enfriamiento");
     }
 
     /**
@@ -46,8 +48,6 @@ public class Disponible implements modelo.motorWarp.State {
      */
     @Override
     public void volverADisponible() {
-        motorWarp.bitacora.registrar("el motor permanece disponible");
+        Bitacora.getInstance().registrar("el motor permanece disponible");
     }
-
-
 }

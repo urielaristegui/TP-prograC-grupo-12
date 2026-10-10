@@ -15,7 +15,7 @@ public class Consejero extends Tripulante{
     
     @Override
     public double getSueldo(){
-        return sueldob + (sueldob * bonusant * antiguedad) + 2 * LConsejos.length;
+        return sueldob + (sueldob * bonusant * antiguedad) + 2 * LConsejos.size();
     }
     
     public void registrarConsejo(String consejo){

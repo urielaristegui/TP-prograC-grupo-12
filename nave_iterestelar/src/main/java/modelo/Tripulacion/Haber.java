@@ -1,5 +1,5 @@
-package modelo.tripulacion;
+package modelo.Tripulacion;
 
-public Interface Haber{
+public interface Haber{
     public double getSueldo();
 }

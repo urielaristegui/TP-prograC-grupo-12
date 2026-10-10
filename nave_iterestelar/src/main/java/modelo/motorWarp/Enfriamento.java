@@ -1,5 +1,7 @@
 package modelo.motorWarp;
 
+import modelo.bitacora.Bitacora;
+
 public class Enfriamento implements State {
     private MotorWarp motorWarp;
 
@@ -17,9 +19,9 @@ public class Enfriamento implements State {
      * <b>post:</b> error <br>
      */
     @Override
-   public void prepararSalto() {
-        motorWarp.bitacora.registrar("ERROR: no se puede preparar el salto en enfriamiento");
-   }
+    public void prepararSalto() {
+        Bitacora.getInstance().registrar("ERROR: no se puede preparar el salto en enfriamiento");
+    }
 
     /**
      * intenta entrar en warp <br>
@@ -27,7 +29,7 @@ public class Enfriamento implements State {
      */
     @Override
     public void entrarEnWarp() {
-        motorWarp.bitacora.registrar("ERROR: no se puede entrar en warp en enfriamiento");
+        Bitacora.getInstance().registrar("ERROR: no se puede entrar en warp en enfriamiento");
     }
 
     /**
@@ -37,7 +39,7 @@ public class Enfriamento implements State {
     @Override
     public void volverADisponible() {
         motorWarp.setState(new Disponible(motorWarp));
-        motorWarp.bitacora.registrar("volviendo a disponible");
+        Bitacora.getInstance().registrar("volviendo a disponible");
     }
 
     /**
@@ -46,6 +48,7 @@ public class Enfriamento implements State {
      */
     @Override
     public void iniciarEnfriamiento() {
-        motorWarp.bitacora.registrar("el motor permanece en enfriamiento");
+        Bitacora.getInstance().registrar("el motor permanece en enfriamiento");
+
     }
 }
