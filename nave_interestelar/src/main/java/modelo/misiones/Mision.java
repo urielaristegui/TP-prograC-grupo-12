@@ -47,14 +47,16 @@ public abstract class Mision {
 				+ ", Energía: " + getEnergiaRequerida()
 				+ ", Desgaste: " + getDesgasteGenerado();
 
-		informe = new InformeMision.Builder()
-				.misionEjecutada(prefijo)
-				.resultadoFinal(resultado.toString())
-				.recursosConsumidos(recursos)
-				.estadoNave(AC.snapshotEstadoNave())
-				.eventos(AC.eventosDe(prefijo))
-				.build();
+		informe = new InformeMision(
+				prefijo,
+				resultado,
+				AC.eventosDe(prefijo),
+				recursos,
+				AC.snapshotEstadoNave(),
+				"" // observaciones: sin contenido hasta que existan misiones concretas
+		);
 	}
+
 
 	public InformeMision getInforme() {
 		return informe;
