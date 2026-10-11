@@ -1,0 +1,362 @@
+@startuml
+skinparam classAttributeIconSize 0
+left to right direction
+
+' ==========================================
+' PAQUETE: BITÁCORA (Singleton)
+' ==========================================
+package modelo.bitacora {
+    class Bitacora {
+        - static Bitacora instance
+        - ArrayList<String> registro
+        - Bitacora()
+        + static Bitacora getInstance()
+        + void registrar(evento: String)
+        + ArrayList<String> getRegistro()
+    }
+}
+
+' ==========================================
+' PAQUETE: MOTOR WARP (Patrón State)
+' ==========================================
+package modelo.motorWarp {
+    interface State <<interface>> {
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverADisponible()
+    }
+
+    class MotorWarp {
+        - State state
+        + MotorWarp()
+        + void setState(state: State)
+        + State getState()
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverAlDisponible()
+    }
+
+    class Disponible {
+        - MotorWarp motorWarp
+        + Disponible(motor: MotorWarp)
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverAlDisponible()
+    }
+    class PreparandoSalto {
+        - MotorWarp motorWarp
+        + PreparandoSalto(motor: MotorWarp)
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverAlDisponible()
+    }
+    class EnWarp {
+        -MotorWarp motorWarp
+        + EnWarp(motor: MotorWarp)
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverAlDisponible()
+    }
+    class Enfriamento {
+        - MotorWarp motorWarp
+        + Enfriamento(motor: MotorWarp)
+        + void prepararSalto()
+        + void entrarEnWarp()
+        + void iniciarEnfriamiento()
+        + void volverAlDisponible()
+    }
+}
+
+' ==========================================
+' PAQUETE: NAVE (Patrón Factory)
+' ==========================================
+package modelo.nave {
+    abstract class Nave {
+        - static final int CAPACIDAD_COMBUSTIBLE = 100;
+        - static final int CAPACIDAD_ENERGIA = 100;
+        - static final int DESGASTE_MAXIMO = 100;
+        - static final int UMBRAL_MANTENIMIENTO = 80;
+        - static final int TRIPULACION_MINIMA = 5;
+        - final int id;
+        - int combustible;
+        - int energia;
+        - int desgaste;
+        - final ArrayList<Tripulante> tripulacion;
+        - final MotorWarp motor
+        # Nave (int id, int combustible, int energia)
+        + int getId()
+        + int getCombustible()
+        + int getEnergia()
+        + int getDesgaste()
+        + boolean requiereMantenimiento()
+        + void cargarCombustible()
+        + void cargarEnergia()
+        + void consumirRecursos(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
+        + void realizarMantenimiento()
+        + void agregarTripulante(Tripulante tripulante)
+        + tripulante buscarTripulante(idTripulante: String))
+        + ArrayList<Tripulante> getTripulacion()
+        + boolean tieneTripulacionValida()
+        - void validarIdTripulacion(idTripulante: String)
+        + void prepararSalto()
+        + void saltar()
+    }
+
+    class NaveCarguero{
+         NaveCarguero(int : id)
+    }
+    class NaveCombate{
+        NaveCombate(int : id)
+    }
+    class NaveExploradora{
+        NaveExploradora(int : id)
+    }
+
+    class NaveFactory {
+        - NaveFactory()
+        + static Nave crearNave(tipo: TipoNave)
+    }
+
+    enum TipoNave {
+        CARGUERO
+        COMBATE
+        EXPLORADORA
+    }
+}
+
+' ==========================================
+' PAQUETE: MISIONES (Patrón Template Method)
+' ==========================================
+package modelo.misiones {
+    abstract class Mision {
+        # AsistenteDeComandos AC
+        # ResultadoMision resultado
+        # InformeMision informe
+        + Mision(AsistenteDeComandos AC)
+        + final boolean director()
+        # abstract void ResultadoMision evalar()
+        # abstract boolean ejecutar()
+        # boolean preparar()
+        # void cerrar()
+        + InformeMision getInforme()
+        # abstract int getCombustibleRequerido()
+        # abstract int getEnergiaRequerida()
+        # abstract int getDesgasteGenerado()
+    }
+
+    class Intercepcion{
+        - int energiaRequerida
+        - int combustibleRequerido
+        - int desgaste
+        + Intercepcion(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste)
+        # int getCombustibleRequerido()
+        # int getEnergiaRequerida()
+        # int getDesgasteGenerado ()
+        # void ejecutar()
+        # ResultadoMision evalar()
+    }
+    class Recoleccion{
+        - int energiaRequerida
+        - int combustibleRequerido
+        - int desgaste
+        + Recoleccion(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste)
+        # int getCombustibleRequerido()
+        # int getEnergiaRequerida()
+        # int getDesgasteGenerado ()
+        # void ejecutar()
+        # ResultadoMision evalar()
+    }
+    class Retorno{
+        - int energiaRequerida
+        - int combustibleRequerido
+        - int desgaste
+        + Retorno(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste)
+        # int getCombustibleRequerido()
+        # int getEnergiaRequerida()
+        # int getDesgasteGenerado ()
+        # void ejecutar()
+        # ResultadoMision evalar()
+    }
+
+    enum ResultadoMision{
+        EXITOSA
+        FALLIDA
+    }
+    class InformeMision{
+        - final String misionEjecutada
+        - final ResultadoMision resultado
+        - final List<String> acionesPrincipales
+        - final String recursosConsumidos
+        - final String estadoNave
+        - final String observaciones
+        + InformeMision(String misionEjecutada, ResultadoMision resultado, List<String> acionesPrincipales, String recursosConsumidos, String estadoNave, String observaciones)
+        + String getMisionEjecutada()
+        + ResultadoMision getResultado()
+        + List<String> getAccionesPrincipales()
+        + String getRecursosConsumidos()
+        + String getEstadoNave()
+        + String getObservaciones()
+        + String toString()
+    }
+
+' ==========================================
+' PAQUETE: TRIPULACIÓN (Patrón Decorator)
+' ==========================================
+package modelo.Tripulacion {
+    class Tripulante <<abstract>> {
+        # Identidad identidad
+        # String cargo
+        # double antiguedad
+        # String origen
+        # double sueldob
+        + Tripulante(Identidad id,double ant)
+        + abstract double getSueldo()
+        + String getID()
+        + String getCargo()
+        + double getAntiguedad()
+        + String getOrigen()
+        + void setID()
+        + vois setAntiguiedad()
+    }
+
+    class Identidad{
+        static int sig=-1
+        - int id
+        - String nombre
+        + Identidad(String nombre)
+        + String getNombre()
+    }
+    interface Haber <<interface>>{
+        + double getSueldo()
+    }
+
+    class Capitan{
+        - static Capitan instancia
+        - AsistenteDeComandos ANav
+        - double sueldob
+        - double bonusant
+        + Capitan(Identidad id,double ant,AsistenteDeComandos anav)
+        + double getSueldo()
+        + static Capitan getInstancia()
+        + void ejecutarMision()
+        + void echarTripulante()
+    }
+
+    class Consejero{
+        - double sueldob
+        - double bonusant
+        - ArrayList<String> Lconsejos
+        + Consejero(Identidad id, double ant)
+        + double getSueldo()
+    }
+
+    class Teniente{
+        - double sueldob
+        - double bonusant
+        + Teniente(Identidad id, double ant)
+        + double getSueldo()
+    }
+
+    class Alferez{
+        - double sueldob
+        - double bonusant
+        + Alferez(Identidad id, double ant)
+        + double getSueldo()
+    }
+
+    abstract class DecoratorPlaneta {
+        -Haber haber
+        + Haber getHaber()
+        + void setHaber(Haber haber)
+        # Tripulante tripulante
+        + DecoratorPlaneta(t: Tripulante)
+    }
+
+    class Marciano{
+        - final double subsidio
+        + Marciano(Haber haber)
+        + double getSueldo()
+    }
+
+    class Terricola{
+        - final double subsidio
+        + Terricola(Haber haber)
+        + double getSueldo()
+    }
+    class Vulcano{
+        - final double subsidio
+        + Vulcano(Haber haber)
+        + double getSueldo()
+    }
+}
+
+' ==========================================
+' PAQUETE: ASISTENTE DE COMANDOS
+' ==========================================
+package modelo.asistenteDeConamdos {
+    class AsistenteDeComandos {
+        - Nave nave
+        - Bitacora bitacora
+        + AsistenteDeComandos(Nave nave, Bitacora bitacora)
+        + void setNave(Nave, nave)
+        + void setBitacora(Bitacora, bitacora)
+        + boolean tieneRecursosDisponibles(int combustibleRequerido, int energiaRequerida)
+        + void ordenarConsumo(int combustible, int energia, int desgaste)
+        + void registrarEvento(String evento)
+        + void prepararSalto()
+        + void salta()
+        + String snapshotEstadoNave()
+        + List<String> eventosDe(String prefijo)
+    }
+}
+
+' ==========================================
+' RELACIONES Y DEPENDENCIAS
+' ==========================================
+
+' Relaciones - Motor Warp (State)
+MotorWarp o-- State : estado
+State <|.. Disponible
+State <|.. PreparandoSalto
+State <|.. EnWarp
+State <|.. Enfriamento
+
+' Relaciones - Nave (Factory)
+Nave <|-- NaveCarguero
+Nave <|-- NaveCombate
+Nave <|-- NaveExploradora
+NaveFactory ..> Nave : crea
+NaveFactory ..> TipoNave : usa
+Nave *-- MotorWarp : contiene
+
+' Relaciones - Misiones (Template Method)
+Mision <|-- Intercepcion
+Mision <|-- Recoleccion
+Mision <|-- Retorno
+Mision *-- InformeMision : produce
+Mision *-- ResultadoMision : genera
+
+' Relaciones - Tripulación (Decorator)
+Tripulante <|.. Capitan
+Tripulante <|.. Consejero
+Tripulante <|.. Teniente
+Tripulante <|.. Alferez
+Tripulante <|.. DecoratorPlaneta
+DecoratorPlaneta o-- Tripulante : envuelve
+DecoratorPlaneta <|-- Marciano
+DecoratorPlaneta <|-- Terricola
+DecoratorPlaneta <|-- Vulcano
+
+' Relaciones - Asistente y Bitácora
+AsistenteDeComandos ..> Bitacora : registra
+Mision ..> Bitacora : registra
+State ..> Bitacora : registra
+AsistenteDeComandos ..> Nave : coordina
+AsistenteDeComandos ..> Mision : ejecuta
+
+@enduml
