@@ -1,3 +1,4 @@
+package modelo.destinoytablero;
 import java.util.ArrayList;
 
 /** Base para objetos que notifican cambios a sus observadores. */

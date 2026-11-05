@@ -1,7 +1,9 @@
+package modelo.destinoytablero;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
+import modelo.elementos.*;
 
 /** Coordina los intentos de movimiento aleatorio de los elementos del tablero. */
 public class Destino {
