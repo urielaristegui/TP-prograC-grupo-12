@@ -33,7 +33,7 @@ public class Sensores {
      * <b>pre:</b> ninguna.<br>
      * <b>post:</b> retorna la matriz de 3x3 de elementos del universo y asienta la lectura en la bitacora.<br>
      *
-     * @return matriz de 3x3 con los elementos vecinos a la nave (la posicion de la nave es).
+     * @return matriz de 3x3 con los elementos vecinos a la nave.
      */
     public ElementoDelUniverso[][] escanearCortoAlcance() {
         ElementoDelUniverso[][] alrededores = tablero.observarAlrededores();
@@ -42,16 +42,32 @@ public class Sensores {
     }
 
     /**
-     * realiza un escaneo de largo alcance de todo el tablero.<br>
+     * realiza un escaneo de largo alcance obteniendo la matriz de 5x5 alrededor de la nave (2 casillas a la redonda).<br>
      * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna la matriz completa del tablero y asienta el escaneo en la bitacora.<br>
+     * <b>post:</b> retorna la matriz de 5x5 con los elementos en el rango de 2 casilleros y asienta el escaneo en la bitacora.<br>
      *
-     * @return matriz rectangular con todos los elementos del tablero.
+     * @return matriz de 5x5 con los elementos a 2 casillas de distancia.
      */
     public ElementoDelUniverso[][] escanearLargoAlcance() {
+        ElementoDelUniverso[][] largoAlcance = new ElementoDelUniverso[5][5];
+        Posicion posNave = tablero.getPosicionNave();
         ElementoDelUniverso[][] mapa = tablero.verTablero();
-        Bitacora.getInstance().registrar("Sensor: escaneo de largo alcance realizado sobre todo el tablero");
-        return mapa;
+
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                int fila = posNave.getX() + dx;
+                int columna = posNave.getY() + dy;
+
+                if (fila >= 0 && fila < tablero.getX() && columna >= 0 && columna < tablero.getY()) {
+                    largoAlcance[dx + 2][dy + 2] = mapa[fila][columna];
+                } else {
+                    largoAlcance[dx + 2][dy + 2] = null;
+                }
+            }
+        }
+
+        Bitacora.getInstance().registrar("Sensor: escaneo de largo alcance realizado (2 casillas a la redonda, 5x5)");
+        return largoAlcance;
     }
 
     /**

@@ -17,4 +17,6 @@ public interface ElementoDelUniverso {
      * @param nave referencia a la nave que interactua con el elemento.
      */
     void interactuar(Nave nave);
+
+    public String toString();
 }

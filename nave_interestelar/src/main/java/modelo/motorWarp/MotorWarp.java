@@ -155,4 +155,58 @@ public class MotorWarp {
     public void resetearTurnosEnfriamiento() {
         this.turnosEnfriamiento = 0;
     }
+
+    /**
+     * verifica si el motor se encuentra en estado disponible.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> retorna true si el estado actual es Disponible.<br>
+     *
+     * @return true si esta disponible.
+     */
+    public boolean estaDisponible() {
+        return state instanceof Disponible;
+    }
+
+    /**
+     * verifica si el motor se encuentra en fase de preparacion.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> retorna true si el estado actual es PreparandoSalto.<br>
+     *
+     * @return true si esta en preparacion.
+     */
+    public boolean estaPreparando() {
+        return state instanceof PreparandoSalto;
+    }
+
+    /**
+     * verifica si el motor esta en fase de enfriamiento.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> retorna true si el estado actual es Enfriamiento.<br>
+     *
+     * @return true si esta en enfriamiento.
+     */
+    public boolean estaEnEnfriamiento() {
+        return state instanceof Enfriamento;
+    }
+
+    /**
+     * consulta si se completaron los dos turnos de preparacion requeridos.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> retorna true si el contador de turnos de preparacion es mayor o igual a 2.<br>
+     *
+     * @return true si finalizo la preparacion.
+     */
+    public boolean estaListoParaSaltar() {
+        return turnosPreparacion >= 2;
+    }
+
+    /**
+     * incrementa el contador de turnos de preparacion del salto.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> se suma 1 al contador de preparacion.<br>
+     */
+    public void avanzarTurnoPreparacion() {
+        this.turnosPreparacion++;
+    }
+
 }

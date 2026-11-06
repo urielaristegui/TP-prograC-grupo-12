@@ -1,7 +1,7 @@
 package vista;
 
+import modelo.bitacora.Bitacora;
 import modelo.bitacora.IObservadorBitacora;
-import modelo.destinoytablero.Observador;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,13 +19,13 @@ public class PanelBitacoraYSensores extends JPanel implements IObservadorBitacor
     /**
      * constructor de la clase panelBitacoraYSensores.<br>
      * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> inicializa la disposicion visual y los componentes del panel.<br>
+     * <b>post:</b> inicializa la disposicion visual, los componentes del panel y se registra en la bitacora.<br>
      */
     public PanelBitacoraYSensores() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createTitledBorder("Bitacora de Vuelo y Sensores"));
 
-        // --- SUBPANEL SUPERIOR: Estado de Sensores ---
+        // subpanel superior: estado de sensores
         JPanel panelSensores = new JPanel(new GridLayout(2, 1, 5, 5));
         panelSensores.setBorder(BorderFactory.createEtchedBorder());
 
@@ -38,7 +38,7 @@ public class PanelBitacoraYSensores extends JPanel implements IObservadorBitacor
         panelSensores.add(lblEstadoSensor);
         panelSensores.add(lblLecturaProximaCelda);
 
-        // --- SUBPANEL CENTRAL: Registro de Bitacora en Tiempo Real ---
+        // subpanel central: registro de bitacora en tiempo real
         txtBitacora = new JTextArea(12, 30);
         txtBitacora.setEditable(false);
         txtBitacora.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -47,6 +47,9 @@ public class PanelBitacoraYSensores extends JPanel implements IObservadorBitacor
 
         add(panelSensores, BorderLayout.NORTH);
         add(scrollBitacora, BorderLayout.CENTER);
+
+        // auto-registro como observador del singleton de bitacora
+        Bitacora.getInstance().agregarObservador(this);
     }
 
     /**
@@ -58,13 +61,11 @@ public class PanelBitacoraYSensores extends JPanel implements IObservadorBitacor
      */
     @Override
     public void actualizarBitacora(String evento) {
-        // garantizar la actualizacion thread-safe del componente swing
         SwingUtilities.invokeLater(() -> {
             txtBitacora.append(evento + "\n");
-            txtBitacora.setCaretPosition(txtBitacora.getDocument().getLength()); // auto-scroll
+            txtBitacora.setCaretPosition(txtBitacora.getDocument().getLength());
 
-            // si el evento contiene informacion de sensores, actualizamos la etiqueta
-            if (evento.contains("Sensor:")) {
+            if (evento.contains("Sensor:") || evento.contains("Navegacion:")) {
                 lblLecturaProximaCelda.setText(evento);
             }
         });
