@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import modelo.bitacora.Bitacora;
+import modelo.destinoytablero.Posicion;
 import modelo.motorWarp.MotorWarp;
 import modelo.Tripulacion.Tripulante;
 /**
@@ -30,7 +31,7 @@ public abstract class Nave {
     private int combustible;
     private int energia;
     private int desgaste;
-
+    private Posicion posicion;
     private final MotorWarp motorWarp;
     private final Map<String, Tripulante> tripulacion;
 
@@ -80,6 +81,75 @@ public abstract class Nave {
     public int getDesgaste() {
         return desgaste;
     }
+
+    public Posicion getPosicion(){
+        return posicion;
+    }
+
+    public MotorWarp getMotorWarp() {
+        return motorWarp;
+    }
+
+    /**
+     * actualiza la posicion actual de la nave en el mapa.<br>
+     * <b>pre:</b> posicion != null.<br>
+     * <b>post:</b> asigna la nueva coordenada a la nave.<br>
+     *
+     * @param posicion nueva coordenada de ubicacion de la nave.
+     * @throws IllegalArgumentException si posicion es null.
+     */
+    public void setPosicion(Posicion posicion) {
+        if (posicion == null) {
+            throw new IllegalArgumentException("la posicion no puede ser null");
+        }
+        this.posicion = posicion;
+    }
+
+    /**
+     * descuenta una cantidad especifica de energia del sistema de la nave.<br>
+     * <b>pre:</b> cantidad > 0.<br>
+     * <b>post:</b> reduce la energia acumulada sin permitir valores inferiores a cero.<br>
+     *
+     * @param cantidad unidades de energia a consumir.
+     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     */
+    public void descontarEnergia(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("la cantidad a descontar debe ser mayor a cero");
+        }
+        this.energia = Math.max(0, this.energia - cantidad);
+    }
+
+    /**
+     * descuenta una cantidad especifica de combustible del tanque de la nave.<br>
+     * <b>pre:</b> cantidad > 0.<br>
+     * <b>post:</b> reduce el nivel de combustible sin permitir valores inferiores a cero.<br>
+     *
+     * @param cantidad unidades de combustible a consumir.
+     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     */
+    public void descontarCombustible(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("la cantidad a descontar debe ser mayor a cero");
+        }
+        this.combustible = Math.max(0, this.combustible - cantidad);
+    }
+
+    /**
+     * incrementa el nivel de desgaste acumulado en la estructura de la nave.<br>
+     * <b>pre:</b> cantidad > 0.<br>
+     * <b>post:</b> se incrementa el desgaste limite del casco hasta un maximo de 100.<br>
+     *
+     * @param cantidad unidades de desgaste a sumar.
+     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     */
+    public void generarDesgaste(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("la cantidad de desgaste debe ser mayor a cero");
+        }
+        this.desgaste = Math.min(100, this.desgaste + cantidad);
+    }
+
 
     /**
      * @return true si el desgaste es 80 o superior
