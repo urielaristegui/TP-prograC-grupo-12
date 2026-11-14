@@ -38,6 +38,7 @@ public abstract class Nave implements ElementoDelUniverso {
     private Posicion posicion;
     private final MotorWarp motorWarp;
     private final Map<String, Tripulante> tripulacion;
+    private int gemas;
 
     /**
      * Inicializa la nave con desgaste cero, tripulacion vacia
@@ -69,6 +70,7 @@ public abstract class Nave implements ElementoDelUniverso {
         this.destruida = false;
         this.motorWarp = new MotorWarp();
         this.tripulacion = new HashMap<>();
+        this.gemas = 0;
     }
 
     public int getId() {
@@ -597,4 +599,57 @@ public abstract class Nave implements ElementoDelUniverso {
             );
         }
     }
+
+
+    /**
+     * Consulta las gemas acumuladas.
+     *
+     * Pre: ninguna.
+     * Post: no modifica el estado.
+     *
+     * @return cantidad actual de gemas
+     */
+    public int getGemas() {
+        return gemas;
+    }
+
+    /**
+     * Incorpora gemas al inventario de la nave.
+     *
+     * Pre:
+     * - cantidad > 0.
+     * - La nave no esta destruida.
+     * - La suma debe poder representarse como int.
+     *
+     * Post:
+     * - Incrementa gemas en cantidad.
+     * - No modifica otros recursos.
+     *
+     * @param cantidad gemas a incorporar
+     * @throws IllegalArgumentException si cantidad <= 0
+     * @throws IllegalStateException si la nave esta destruida
+     *         o la suma excede el rango de int
+     */
+    public void agregarGemas(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException(
+                    "La cantidad debe ser positiva"
+            );
+        }
+
+        if (destruida) {
+            throw new IllegalStateException(
+                    "La nave esta destruida"
+            );
+        }
+
+        try {
+            gemas = Math.addExact(gemas, cantidad);
+        } catch (ArithmeticException ex) {
+            throw new IllegalStateException(
+                    "Capacidad numerica de gemas excedida", ex
+            );
+        }
+    }
+
 }

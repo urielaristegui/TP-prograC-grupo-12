@@ -25,7 +25,8 @@ import modelo.nave.NaveCarguero;
 import modelo.nave.NaveCombate;
 import modelo.nave.NaveExploradora;
 import modelo.universo.Universo;
-
+import modelo.elementos.Gema;
+import modelo.elementos.Anomalia;
 /**
  * Vista grafica del tablero del universo.
  * Muestra los elementos, la nave y el objetivo.
@@ -58,6 +59,10 @@ public class JPanelTablero extends JPanel implements Observador {
             new Color(64, 217, 159);
     private static final Color COLOR_ENEMIGA =
             new Color(247, 111, 119);
+    private static final Color COLOR_GEMA =
+            new Color(255, 214, 70);
+    private static final Color COLOR_ANOMALIA =
+            new Color(177, 122, 252);
 
     private enum TipoCelda {
         VACIA,
@@ -66,6 +71,8 @@ public class JPanelTablero extends JPanel implements Observador {
         EXPLORADORA,
         CARGUERO,
         COMBATE,
+        GEMA,
+        ANOMALIA,
         OTRO
     }
 
@@ -240,7 +247,15 @@ public class JPanelTablero extends JPanel implements Observador {
         if (elemento == null) {
             return TipoCelda.VACIA;
         }
+        if (elemento instanceof Gema gema) {
+            return gema.estaRecolectada()
+                    ? TipoCelda.VACIA
+                    : TipoCelda.GEMA;
+        }
 
+        if (elemento instanceof Anomalia) {
+            return TipoCelda.ANOMALIA;
+        }
         if (elemento instanceof Asteroide) {
             return TipoCelda.ASTEROIDE;
         }
@@ -432,6 +447,41 @@ public class JPanelTablero extends JPanel implements Observador {
                         centroY - lado / 8,
                         Math.max(2, lado / 5),
                         Math.max(2, lado / 5)
+                );
+
+                break;
+
+            case GEMA:
+
+                g2.setColor(COLOR_GEMA);
+
+                g2.fillOval(
+                        x + margen, y + margen,
+                        lado - 2 * margen,
+                        lado - 2 * margen
+                );
+
+                break;
+
+            case ANOMALIA:
+
+                g2.setColor(COLOR_ANOMALIA);
+
+                g2.setStroke(
+                        new BasicStroke(Math.max(2f, lado / 8f))
+                );
+
+                g2.drawOval(
+                        x + margen, y + margen,
+                        lado - 2 * margen,
+                        lado - 2 * margen
+                );
+
+                g2.fillOval(
+                        centroX - lado / 8,
+                        centroY - lado / 8,
+                        Math.max(3, lado / 4),
+                        Math.max(3, lado / 4)
                 );
 
                 break;
@@ -640,15 +690,14 @@ public class JPanelTablero extends JPanel implements Observador {
         }
     }
 
+
     /**
-     * Dibuja la leyenda de elementos.
+     * Dibuja las referencias de los elementos.
      *
      * Pre: g2 != null.
-     * Post: muestra las referencias de colores
-     *       debajo del tablero.
+     * Post: muestra la leyenda sin modificar el modelo.
      */
-    private void dibujarLeyenda(
-            Graphics2D g2, int x, int y) {
+    private void dibujarLeyenda(Graphics2D g2, int x, int y) {
 
         g2.setFont(
                 new Font(Font.SANS_SERIF, Font.PLAIN, 11)
@@ -658,7 +707,9 @@ public class JPanelTablero extends JPanel implements Observador {
                 "Tu nave",
                 "Asteroide",
                 "Estacion",
-                "Enemigas E/C/B",
+                "Enemigas",
+                "Gema",
+                "Anomalia",
                 "Objetivo"
         };
 
@@ -667,22 +718,32 @@ public class JPanelTablero extends JPanel implements Observador {
                 COLOR_ASTEROIDE,
                 COLOR_ESTACION,
                 COLOR_ENEMIGA,
+                COLOR_GEMA,
+                COLOR_ANOMALIA,
                 COLOR_OBJETIVO
         };
 
         int actual = x;
+        int filaY = y;
 
         for (int i = 0; i < textos.length; i++) {
 
+            int itemAncho =
+                    g2.getFontMetrics().stringWidth(textos[i]) + 32;
+
+            if (actual + itemAncho > getWidth() - MARGEN) {
+                actual = x;
+                filaY += 19;
+            }
+
             g2.setColor(colores[i]);
-            g2.fillRect(actual, y - 10, 10, 10);
+            g2.fillRect(actual, filaY - 10, 10, 10);
 
             g2.setColor(Color.WHITE);
-            g2.drawString(textos[i], actual + 14, y);
+            g2.drawString(textos[i], actual + 14, filaY);
 
-            actual +=
-                    g2.getFontMetrics().stringWidth(textos[i])
-                            + 32;
+            actual += itemAncho;
         }
     }
+
 }

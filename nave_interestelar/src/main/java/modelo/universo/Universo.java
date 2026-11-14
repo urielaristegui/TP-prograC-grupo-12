@@ -11,7 +11,7 @@ import modelo.destinoytablero.Posicion;
 import modelo.destinoytablero.Tablero;
 import modelo.elementos.ElementoDelUniverso;
 import modelo.nave.Nave;
-
+import modelo.elementos.Gema;
 /**
  * Coordina la nave del jugador con el tablero y sus elementos.
  *
@@ -228,20 +228,17 @@ public class Universo {
         return tablero.inspeccionarPosicion();
     }
 
+
     /**
-     * Ejecuta la interaccion con el elemento actual.
+     * Interactua con el elemento de la posicion actual.
      *
      * Pre: la nave esta operativa.
-     *
      * Post:
-     * - Si hay un elemento, ejecuta interactuar(nave).
-     * - Aplica las consecuencias sobre los recursos.
-     * - Comprueba energia, combustible y desgaste.
-     * - Si la nave queda sin recursos, la destruye.
-     * - Si no hay elemento, no altera los recursos.
+     * - Ejecuta la interaccion si existe un elemento.
+     * - Verifica si la nave debe ser destruida.
+     * - No modifica directamente el tablero.
      *
-     * @return true si hubo un elemento; false si no
-     * @throws IllegalStateException si la nave esta destruida
+     * @return true si existe un elemento, false si no
      */
     public boolean interactuarEnPosicionActual() {
         exigirNaveOperativa();
@@ -259,6 +256,7 @@ public class Universo {
 
         return true;
     }
+
 
     /**
      * Ejecuta un turno del tablero.
