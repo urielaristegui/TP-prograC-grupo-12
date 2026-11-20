@@ -142,7 +142,6 @@ public abstract class Mision {
 	}
 
 	private void turnoDeLaNave() {
-		// 1. Inspección de la posición actual
 		ElementoDelUniverso presente = AC.inspeccionarPosicion();
 		if (presente != null) {
 			registrar("encuentro con " + presente.getClass().getSimpleName());
@@ -152,24 +151,15 @@ public abstract class Mision {
 			}
 		}
 
-		// 2. Escaneo de corto alcance
-		ElementoDelUniverso[][] alrededores = AC.escanearCortoAlcance();
-
-		// 3. Planificación y movimiento
+		Posicion anterior = AC.posicionNave();
+		AC.avanzarHacia(objetivo);
 		Posicion actual = AC.posicionNave();
-		Posicion siguiente = ruta.get(indiceRuta);
 
-		if (hayObstaculo(alrededores, actual, siguiente)) {
-			registrar("obstáculo detectado en la siguiente posición: se intenta Salto Warp");
-			if (AC.saltarWarp()) {
-				avanzar(2);
-			} else {
-				registrar("el Motor Warp no completó el salto (preparación o recursos insuficientes)");
-			}
-		} else if (AC.saltar()) {
-			avanzar(1);
+		if (!actual.equals(anterior)) {
+			llegoAlDestino = actual.equals(objetivo);
+			registrar("avance a (" + actual.getX() + "," + actual.getY() + ")");
 		} else {
-			registrar("el salto normal no se pudo realizar");
+			registrar("la nave no se desplazó en este turno");
 		}
 	}
 
@@ -183,7 +173,7 @@ public abstract class Mision {
 	private void avanzar(int pasos) {
 		int destinoIndice = Math.min(indiceRuta + pasos - 1, ruta.size() - 1);
 		Posicion nueva = ruta.get(destinoIndice);
-		AC.moverNave(nueva);
+		AC.avanzarHacia(nueva);
 		indiceRuta = destinoIndice + 1;
 		llegoAlDestino = nueva.equals(objetivo);
 		registrar("avance a (" + nueva.getX() + "," + nueva.getY() + ")");
