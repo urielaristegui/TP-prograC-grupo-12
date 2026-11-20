@@ -271,4 +271,4 @@ public abstract class Mision {
 
 	/** Texto breve de lo que hace aplicarCierre(), para informe y bitácora. */
 	protected abstract String describirCierre();
-}}
+}
