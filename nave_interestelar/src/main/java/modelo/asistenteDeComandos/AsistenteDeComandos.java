@@ -6,10 +6,12 @@ import modelo.destinoytablero.Posicion;
 import modelo.destinoytablero.Tablero;
 import modelo.elementos.ElementoDelUniverso;
 import modelo.nave.Nave;
+import modelo.sensores.ReglasNavegacion;
 
 /**
  * Único punto de contacto entre las misiones y el resto del sistema
- * (nave, bitácora, tablero). Coordina y delega: no decide nada del dominio.
+ * (nave, bitácora, tablero, navegación). Coordina y delega: no decide nada
+ * del dominio.
  */
 public class AsistenteDeComandos {
 
@@ -21,6 +23,7 @@ public class AsistenteDeComandos {
 	private Bitacora bitacora;
 	private Tablero tablero;
 	private Destino destino;
+	private ReglasNavegacion reglas;
 	private Posicion base;
 
 	public AsistenteDeComandos(Nave nave, Bitacora bitacora) {
@@ -41,7 +44,10 @@ public class AsistenteDeComandos {
 		this.nave = nave;
 	}
 
-	/** La posición de la nave al recibir el tablero es la base de origen. */
+	/**
+	 * Recibe el tablero, crea el Destino que lo hace evolucionar y deja a la
+	 * nave en la posición inicial del tablero. Esa posición es la base de origen.
+	 */
 	public void setTablero(Tablero tablero) {
 		if (tablero == null) {
 			throw new IllegalArgumentException("El tablero no puede ser null");
@@ -49,11 +55,25 @@ public class AsistenteDeComandos {
 		this.tablero = tablero;
 		this.destino = new Destino(tablero);
 		this.base = tablero.getPosicionNave();
+		nave.setPosicion(base);
+	}
+
+	public void setReglasNavegacion(ReglasNavegacion reglas) {
+		if (reglas == null) {
+			throw new IllegalArgumentException("Las reglas de navegación no pueden ser null");
+		}
+		this.reglas = reglas;
 	}
 
 	private void exigirTablero() {
 		if (tablero == null) {
 			throw new IllegalStateException("El asistente no tiene un tablero asignado");
+		}
+	}
+
+	private void exigirReglas() {
+		if (reglas == null) {
+			throw new IllegalStateException("El asistente no tiene reglas de navegación asignadas");
 		}
 	}
 
@@ -82,9 +102,10 @@ public class AsistenteDeComandos {
 		return nave.getDesgaste();
 	}
 
-	/** Regla del enunciado: desgaste en 100, o energía o combustible en 0. */
+	/** Destruida en combate, o por la regla del enunciado: desgaste en 100, o energía o combustible en 0. */
 	public boolean naveDestruida() {
-		return nave.getDesgaste() >= DESGASTE_MAXIMO
+		return nave.estaDestruida()
+				|| nave.getDesgaste() >= DESGASTE_MAXIMO
 				|| nave.getEnergia() <= 0
 				|| nave.getCombustible() <= 0;
 	}
@@ -124,7 +145,7 @@ public class AsistenteDeComandos {
 	}
 
 	// ---------------------------------------------------------------
-	// Tablero
+	// Tablero y navegación
 	// ---------------------------------------------------------------
 
 	public Posicion posicionNave() {
@@ -148,15 +169,33 @@ public class AsistenteDeComandos {
 		return tablero.inspeccionarPosicion();
 	}
 
-	/** Radar de corto alcance: vecindario de 3x3, con la nave en [1][1]. */
-	public ElementoDelUniverso[][] escanearCortoAlcance() {
+	/**
+	 * Un turno de navegación hacia el destino. Las reglas deciden si corresponde
+	 * salto normal, preparar/avanzar el Warp o no moverse, y mueven la nave.
+	 * Después se actualiza el tablero con la nueva posición de la nave.
+	 */
+	public void avanzarHacia(Posicion destinoFinal) {
 		exigirTablero();
-		return tablero.observarAlrededores();
+		exigirReglas();
+		Posicion anterior = nave.getPosicion();
+		reglas.evaluarYEjecutarPaso(nave, destinoFinal);
+		Posicion actual = nave.getPosicion();
+
+		// Tablero.moverNave exige una posición dentro del tablero: esa garantía es nuestra.
+		if (!dentroDelTablero(actual)) {
+			nave.setPosicion(anterior);
+			registrarEvento("Asistente: la navegación llevó la nave fuera del tablero ("
+					+ actual.getX() + "," + actual.getY() + "); se mantiene en su posición");
+			return;
+		}
+		if (!actual.equals(anterior)) {
+			tablero.moverNave(actual);
+		}
 	}
 
-	public void moverNave(Posicion posicion) {
-		exigirTablero();
-		tablero.moverNave(posicion);
+	private boolean dentroDelTablero(Posicion p) {
+		return p.getX() >= 0 && p.getX() < tablero.getX()
+				&& p.getY() >= 0 && p.getY() < tablero.getY();
 	}
 
 	/** Turno del tablero: Destino mueve al azar los elementos. */
@@ -166,33 +205,16 @@ public class AsistenteDeComandos {
 	}
 
 	// ---------------------------------------------------------------
-	// PENDIENTES: dependen de lo que expongan Nave, MotorWarp y los elementos
+	// Encuentros y recompensas
 	// ---------------------------------------------------------------
 
-	/**
-	 * Salto normal (2 de combustible).
-	 * @return true si el desplazamiento se realizó
-	 */
-	public boolean saltar() {
-		throw new UnsupportedOperationException("PENDIENTE: delegar en Nave/MotorWarp.saltar()");
-	}
-
-	/**
-	 * Salto Warp (2 turnos de preparación, 5 de energía, 1 de enfriamiento).
-	 * @return true sólo cuando el salto efectivamente se ejecutó
-	 *         (false mientras prepara, o si se aborta por falta de energía)
-	 */
-	public boolean saltarWarp() {
-		throw new UnsupportedOperationException("PENDIENTE: delegar en Nave/MotorWarp.saltarWarp()");
-	}
-
-	/** Aplica las consecuencias del encuentro (Double Dispatch según el elemento). */
+	/** El elemento aplica sus consecuencias sobre la nave (Double Dispatch en el caso de otras naves). */
 	public void interactuarCon(ElementoDelUniverso elemento) {
-		throw new UnsupportedOperationException("PENDIENTE: depende de la interfaz ElementoDelUniverso");
+		elemento.interactuar(nave);
 	}
 
-	/** M-02: la nave todavía no tiene gemas. */
+	/** M-02: recompensa en gemas. */
 	public void agregarGemas(int cantidad) {
-		throw new UnsupportedOperationException("PENDIENTE: Nave necesita un recurso 'gemas'");
+		nave.agregarGemas(cantidad);
 	}
-}
+}}
