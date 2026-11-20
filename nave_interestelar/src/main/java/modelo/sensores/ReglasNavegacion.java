@@ -6,7 +6,6 @@ import modelo.elementos.ElementoDelUniverso;
 import modelo.motorWarp.MotorWarp;
 import modelo.nave.Nave;
 import modelo.bitacora.Bitacora;
-
 /**
  * clase encargada de evaluar las lecturas de los sensores y aplicar las reglas de navegacion en 4 direcciones (arriba, abajo, izquierda, derecha).<br>
  * determina si la nave debe realizar un avance normal o activar la secuencia warp para esquivar obstaculos sin moverse en diagonal.<br>
