@@ -1,31 +1,60 @@
 package modelo.misiones;
 
 import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.destinoytablero.Posicion;
 
+/** M-01: alcanzar a la nave aliada y transferirle recursos de auxilio. */
 public class Intercepcion extends Mision {
-	private int combustibleRequerido;
-	private int energiaRequerida;
-	private int desgaste;
 
-	public Intercepcion(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste) {
+	private static final int COMBUSTIBLE_DESPEGUE = 4;
+	private static final int ENERGIA_DESPEGUE = 5;
+	private static final int DESGASTE_DESPEGUE = 4;
+	private static final int MAXIMO_TRANSFERENCIA = 50;
+
+	private final int combustibleSolicitado;
+	private final int energiaSolicitada;
+
+	/**
+	 * @param combustibleSolicitado entre 0 y 50
+	 * @param energiaSolicitada entre 0 y 50
+	 */
+	public Intercepcion(AsistenteDeComandos AC, int combustibleSolicitado, int energiaSolicitada) {
 		super(AC);
-		this.combustibleRequerido = combustibleRequerido;
-		this.energiaRequerida = energiaRequerida;
-		this.desgaste = desgaste;
+		if (combustibleSolicitado < 0 || combustibleSolicitado > MAXIMO_TRANSFERENCIA
+				|| energiaSolicitada < 0 || energiaSolicitada > MAXIMO_TRANSFERENCIA) {
+			throw new IllegalArgumentException("La transferencia debe estar entre 0 y " + MAXIMO_TRANSFERENCIA);
+		}
+		this.combustibleSolicitado = combustibleSolicitado;
+		this.energiaSolicitada = energiaSolicitada;
 	}
 
-	protected int getCombustibleRequerido() { return combustibleRequerido; }
+	@Override
+	protected int getCombustibleRequerido() { return COMBUSTIBLE_DESPEGUE; }
 
-	protected int getEnergiaRequerida() { return energiaRequerida; }
+	@Override
+	protected int getEnergiaRequerida() { return ENERGIA_DESPEGUE; }
 
-	protected int getDesgasteGenerado() { return desgaste; }
+	@Override
+	protected int getDesgasteGenerado() { return DESGASTE_DESPEGUE; }
 
-	protected void ejecutar() {
-		AC.registrarEvento("M1 Intercepción: aproximando al objetivo");
-		AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
+	@Override
+	protected Posicion definirObjetivo() {
+		return AC.nuevoObjetivo(); // la nave aliada está en el objetivo
 	}
 
-	protected ResultadoMision evaluar() {
-		return ResultadoMision.EXITOSA;
+	@Override
+	protected boolean verificarEnDestino() {
+		return AC.tieneRecursosDisponibles(combustibleSolicitado, energiaSolicitada);
+	}
+
+	@Override
+	protected void aplicarCierre() {
+		AC.transferirRecursos(combustibleSolicitado, energiaSolicitada);
+	}
+
+	@Override
+	protected String describirCierre() {
+		return "transferencia de " + combustibleSolicitado + " de combustible y "
+				+ energiaSolicitada + " de energía a la nave aliada";
 	}
 }

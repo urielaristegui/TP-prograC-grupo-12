@@ -1,31 +1,62 @@
 package modelo.misiones;
 
+import java.util.Random;
+
 import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.destinoytablero.Posicion;
 
+/** M-02: llegar al punto de riquezas y recolectar gemas. */
 public class Recoleccion extends Mision {
-	private int energiaRequerida;
-	private int combustibleRequerido;
-	private int desgaste;
 
-	public Recoleccion(AsistenteDeComandos AC, int combustibleRequerido, int energiaRequerida, int desgaste) {
+	private static final int COMBUSTIBLE_DESPEGUE = 4;
+	private static final int ENERGIA_DESPEGUE = 10;
+	private static final int DESGASTE_DESPEGUE = 4;
+	private static final int GEMAS_MINIMAS = 20;
+	private static final int GEMAS_MAXIMAS = 100;
+
+	private final int gemas;
+
+	/** Recompensa sorteada entre 20 y 100 gemas. */
+	public Recoleccion(AsistenteDeComandos AC) {
+		this(AC, GEMAS_MINIMAS + new Random().nextInt(GEMAS_MAXIMAS - GEMAS_MINIMAS + 1));
+	}
+
+	/** @param gemas entre 20 y 100 (útil para pruebas reproducibles) */
+	public Recoleccion(AsistenteDeComandos AC, int gemas) {
 		super(AC);
-		this.combustibleRequerido = combustibleRequerido;
-		this.energiaRequerida = energiaRequerida;
-		this.desgaste = desgaste;
+		if (gemas < GEMAS_MINIMAS || gemas > GEMAS_MAXIMAS) {
+			throw new IllegalArgumentException("Las gemas deben estar entre "
+					+ GEMAS_MINIMAS + " y " + GEMAS_MAXIMAS);
+		}
+		this.gemas = gemas;
 	}
 
-	protected int getCombustibleRequerido() { return combustibleRequerido; }
+	@Override
+	protected int getCombustibleRequerido() { return COMBUSTIBLE_DESPEGUE; }
 
-	protected int getEnergiaRequerida() { return energiaRequerida; }
+	@Override
+	protected int getEnergiaRequerida() { return ENERGIA_DESPEGUE; }
 
-	protected int getDesgasteGenerado() { return desgaste; }
+	@Override
+	protected int getDesgasteGenerado() { return DESGASTE_DESPEGUE; }
 
-	protected void ejecutar() {
-		AC.registrarEvento("M2 Recolección: recolectando muestra en el punto de interés");
-		AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
+	@Override
+	protected Posicion definirObjetivo() {
+		return AC.nuevoObjetivo(); // las riquezas están en el objetivo
 	}
 
-	protected ResultadoMision evaluar() {
-		return ResultadoMision.EXITOSA;
+	@Override
+	protected boolean verificarEnDestino() {
+		return true; // no hay nada que entregar
+	}
+
+	@Override
+	protected void aplicarCierre() {
+		AC.agregarGemas(gemas);
+	}
+
+	@Override
+	protected String describirCierre() {
+		return "recolección de " + gemas + " gemas";
 	}
 }
