@@ -153,7 +153,7 @@ public abstract class Mision {
 		}
 
 		// 2. Escaneo de corto alcance
-		ElementoDelUniverso[][] alrededores = AC.escanearCortoAlcance();
+		ElementoDelUniverso[][] alrededores = AC	.escanearCortoAlcance();
 
 		// 3. Planificación y movimiento
 		Posicion actual = AC.posicionNave();
