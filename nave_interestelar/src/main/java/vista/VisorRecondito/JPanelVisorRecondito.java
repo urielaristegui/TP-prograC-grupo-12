@@ -1,4 +1,4 @@
-package vista;
+package vista.VisorRecondito;
 
 import modelo.UniversoAlterno.PlataformaObserver;
 
