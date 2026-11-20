@@ -1,4 +1,4 @@
-package vista;
+package vista.VisorRecondito;
 
 import java.awt.event.ActionListener;
 

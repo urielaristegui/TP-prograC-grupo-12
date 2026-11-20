@@ -4,7 +4,7 @@ package Controlador;
 import modelo.UniversoAlterno.GeneradoraDeEnergia;
 import modelo.UniversoAlterno.NaveConsumidora;
 import modelo.UniversoAlterno.PlataformaDeCarga;
-import vista.IVisorReconditoVista;
+import vista.VisorRecondito.IVisorReconditoVista;
 
 import java.util.ArrayList;
 import java.util.List;

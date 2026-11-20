@@ -1,8 +1,8 @@
-package nave_interestelar;
+package Pruebas;
 
 import Controlador.VisorReconditoController;
 import modelo.UniversoAlterno.PlataformaDeCarga;
-import vista.JPanelVisorRecondito;
+import vista.VisorRecondito.JPanelVisorRecondito;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -12,7 +12,7 @@ import javax.swing.UIManager;
  * Clase ejecutable de prueba para verificar la concurrencia mediante Monitores
  * y la arquitectura MVC / Observer en el Visor Recóndito.
  */
-public class pruebaconc {
+public class pruebaPanelConcurrencia {
 
     public static void main(String[] args) {
         // Ejecución thread-safe de la interfaz gráfica en el Event Dispatch Thread (EDT)
