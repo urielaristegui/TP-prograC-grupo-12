@@ -1,0 +1,25 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "AsistenteDeComandos)" {
+    class AsistenteDeComandos {
+        - Nave nave
+        - Bitacora bitacora
+        - Tablero tablero
+        - ReglasNavegacion reglas
+        + avanzarHacia(destino: Posicion)
+        + interactuarCon(elemento: ElementoDelUniverso)
+        + registrarEvento(evento: String)
+    }
+
+    class Nave
+    class Bitacora <<Singleton>>
+    class Tablero
+    class ReglasNavegacion
+}
+
+AsistenteDeComandos --> Nave : coordina
+AsistenteDeComandos --> Bitacora : registra
+AsistenteDeComandos --> Tablero : actualiza
+AsistenteDeComandos --> ReglasNavegacion : delega movimiento
+@enduml

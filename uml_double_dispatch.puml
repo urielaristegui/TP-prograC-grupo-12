@@ -1,0 +1,27 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Double Dispatch (Encuentros entre Naves)" {
+    interface ElementoDelUniverso <<interface>> {
+        + interactuar(nave: Nave)
+    }
+
+    abstract class Nave implements ElementoDelUniverso {
+        + interactuar(naveJugador: Nave)
+        + enfrentar(rival: Nave): ResultadoCombate
+        # {abstract} recibirEncuentroDe(propia: NaveExploradora): ResultadoCombate
+        # {abstract} recibirEncuentroDe(propia: NaveCarguero): ResultadoCombate
+        # {abstract} recibirEncuentroDe(propia: NaveCombate): ResultadoCombate
+    }
+
+    class NaveExploradora extends Nave
+    class NaveCarguero extends Nave
+    class NaveCombate extends Nave
+
+    enum ResultadoCombate {
+        GANA
+        PIERDE
+        PACTO_DE_PAZ
+    }
+}
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Patrón Decorator (Tripulación)" {
+    interface Haber <<interface>> {
+        + getSueldo(): double
+    }
+
+    abstract class Tripulante implements Haber {
+        # Identidad identidad
+        # double ant
+        + {abstract} getSueldo(): double
+    }
+
+    abstract class DecoratorPlaneta implements Haber {
+        # Tripulante tripulante
+        + DecoratorPlaneta(t: Tripulante)
+    }
+
+    class Marciano extends DecoratorPlaneta {
+        - double subsidio
+        + getSueldo(): double
+    }
+    class Terricola extends DecoratorPlaneta {
+        - double subsidio
+        + getSueldo(): double
+    }
+    class Vulcano extends DecoratorPlaneta {
+        - double subsidio
+        + getSueldo(): double
+    }
+
+    class Capitan extends Tripulante
+    class Teniente extends Tripulante
+    class Consejero extends Tripulante
+    class Alferez extends Tripulante
+}
+
+DecoratorPlaneta o-- Tripulante : envuelve
+@enduml

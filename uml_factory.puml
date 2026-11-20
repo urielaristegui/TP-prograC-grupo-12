@@ -1,0 +1,29 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Patrón Factory (Creación de Naves)" {
+    class NaveFactory {
+        - NaveFactory()
+        + static crearNave(tipo: TipoNave, id: int): Nave
+    }
+
+    enum TipoNave {
+        CARGUERO
+        COMBATE
+        EXPLORADORA
+    }
+
+    abstract class Nave {
+        - int id
+        - int combustible
+        - int energia
+    }
+
+    class NaveCarguero extends Nave
+    class NaveCombate extends Nave
+    class NaveExploradora extends Nave
+}
+
+NaveFactory ..> Nave : instancia
+NaveFactory ..> TipoNave : usa
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Patrón State (Motor Warp)" {
+    interface State <<interface>> {
+        + prepararSalto()
+        + entrarEnWarp()
+        + iniciarEnfriamiento()
+        + volverADisponible()
+    }
+
+    class MotorWarp {
+        - State state
+        + setState(state: State)
+        + prepararSalto()
+        + entrarEnWarp()
+        + iniciarEnfriamiento()
+        + volverAlDisponible()
+        + estaDisponible(): boolean
+        + estaPreparando(): boolean
+        + estaEnEnfriamiento(): boolean
+    }
+
+    class Disponible implements State {
+        - MotorWarp motorWarp
+        + prepararSalto()
+    }
+    class PreparandoSalto implements State {
+        - MotorWarp motorWarp
+        + entrarEnWarp()
+    }
+    class EnWarp implements State {
+        - MotorWarp motorWarp
+        + iniciarEnfriamiento()
+    }
+    class Enfriamento implements State {
+        - MotorWarp motorWarp
+        + volverADisponible()
+    }
+}
+
+MotorWarp o-- State : estado actual
+Disponible --> MotorWarp
+PreparandoSalto --> MotorWarp
+EnWarp --> MotorWarp
+Enfriamento --> MotorWarp
+
+@enduml

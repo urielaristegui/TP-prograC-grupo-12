@@ -1,0 +1,20 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Patrón Singleton" {
+    class Bitacora <<Singleton>> {
+        - static Bitacora instancia
+        - ArrayList<String> registro
+        - Bitacora()
+        + static Bitacora getInstance()
+        + registrar(evento: String)
+        + getRegistro(): ArrayList<String>
+    }
+
+    class Capitan <<Singleton>> {
+        - static Capitan instancia
+        - Capitan(...)
+        + static Capitan getInstancia(...)
+    }
+}
+@enduml
