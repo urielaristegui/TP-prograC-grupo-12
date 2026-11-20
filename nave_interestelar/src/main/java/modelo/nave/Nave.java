@@ -9,18 +9,21 @@ import modelo.bitacora.Bitacora;
 import modelo.destinoytablero.Posicion;
 import modelo.motorWarp.MotorWarp;
 import modelo.Tripulacion.Tripulante;
+import modelo.elementos.ElementoDelUniverso;
+
 /**
- * Representa una nave y administra sus recursos y tripulación.
+ * Representa una nave y administra sus recursos y tripulacion.
  *
  * Invariantes:
- * - Combustible y energía dentro de sus capacidades.
+ * - Combustible y energia dentro de sus capacidades.
  * - Desgaste entre 0 y 100.
  * - Motor no nulo.
- * - Tripulantes no nulos, con IDs únicos y no vacíos.
+ * - Tripulantes no nulos, con IDs unicos y no vacios.
  *
- * La nave debe completar su tripulación mínima antes de operar.
+ * La nave debe completar su tripulacion minima antes de operar.
  */
-public abstract class Nave {
+public abstract class Nave implements ElementoDelUniverso {
+
     private static final int CAPACIDAD_COMBUSTIBLE = 100;
     private static final int CAPACIDAD_ENERGIA = 100;
     private static final int DESGASTE_MAXIMO = 100;
@@ -31,18 +34,20 @@ public abstract class Nave {
     private int combustible;
     private int energia;
     private int desgaste;
+    private boolean destruida;
     private Posicion posicion;
     private final MotorWarp motorWarp;
     private final Map<String, Tripulante> tripulacion;
+    private int gemas;
 
     /**
-     * Inicializa la nave con desgaste cero, tripulación vacía
+     * Inicializa la nave con desgaste cero, tripulacion vacia
      * y un motor Warp propio en estado Disponible.
      *
      * @param id identificador de la nave
      * @param combustible combustible inicial, entre 0 y 100
-     * @param energia energía inicial, entre 0 y 100
-     * @throws IllegalArgumentException si los recursos están fuera de rango
+     * @param energia energia inicial, entre 0 y 100
+     * @throws IllegalArgumentException si los recursos estan fuera de rango
      */
     protected Nave(int id, int combustible, int energia) {
 
@@ -54,7 +59,7 @@ public abstract class Nave {
 
         if (energia < 0 || energia > CAPACIDAD_ENERGIA) {
             throw new IllegalArgumentException(
-                    "La energía debe estar entre 0 y "
+                    "La energia debe estar entre 0 y "
                             + CAPACIDAD_ENERGIA);
         }
 
@@ -62,8 +67,10 @@ public abstract class Nave {
         this.combustible = combustible;
         this.energia = energia;
         this.desgaste = 0;
+        this.destruida = false;
         this.motorWarp = new MotorWarp();
         this.tripulacion = new HashMap<>();
+        this.gemas = 0;
     }
 
     public int getId() {
@@ -82,7 +89,7 @@ public abstract class Nave {
         return desgaste;
     }
 
-    public Posicion getPosicion(){
+    public Posicion getPosicion() {
         return posicion;
     }
 
@@ -91,67 +98,85 @@ public abstract class Nave {
     }
 
     /**
-     * actualiza la posicion actual de la nave en el mapa.<br>
-     * <b>pre:</b> posicion != null.<br>
-     * <b>post:</b> asigna la nueva coordenada a la nave.<br>
+     * Actualiza la posicion actual de la nave.
      *
-     * @param posicion nueva coordenada de ubicacion de la nave.
-     * @throws IllegalArgumentException si posicion es null.
+     * Pre: posicion != null.
+     * Post: asigna la nueva coordenada a la nave.
+     *
+     * @param posicion nueva coordenada
+     * @throws IllegalArgumentException si posicion es null
      */
     public void setPosicion(Posicion posicion) {
         if (posicion == null) {
-            throw new IllegalArgumentException("la posicion no puede ser null");
+            throw new IllegalArgumentException(
+                    "La posicion no puede ser null"
+            );
         }
+
         this.posicion = posicion;
     }
 
     /**
-     * descuenta una cantidad especifica de energia del sistema de la nave.<br>
-     * <b>pre:</b> cantidad > 0.<br>
-     * <b>post:</b> reduce la energia acumulada sin permitir valores inferiores a cero.<br>
+     * Descuenta energia del sistema de la nave.
      *
-     * @param cantidad unidades de energia a consumir.
-     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     * Pre: cantidad > 0.
+     * Post: reduce la energia sin permitir valores negativos.
+     *
+     * @param cantidad unidades de energia a consumir
+     * @throws IllegalArgumentException si cantidad <= 0
      */
     public void descontarEnergia(int cantidad) {
         if (cantidad <= 0) {
-            throw new IllegalArgumentException("la cantidad a descontar debe ser mayor a cero");
+            throw new IllegalArgumentException(
+                    "La cantidad a descontar debe ser mayor a cero"
+            );
         }
+
         this.energia = Math.max(0, this.energia - cantidad);
     }
 
     /**
-     * descuenta una cantidad especifica de combustible del tanque de la nave.<br>
-     * <b>pre:</b> cantidad > 0.<br>
-     * <b>post:</b> reduce el nivel de combustible sin permitir valores inferiores a cero.<br>
+     * Descuenta combustible.
      *
-     * @param cantidad unidades de combustible a consumir.
-     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     * Pre: cantidad > 0.
+     * Post: reduce el combustible sin permitir valores negativos.
+     *
+     * @param cantidad unidades a consumir
+     * @throws IllegalArgumentException si cantidad <= 0
      */
     public void descontarCombustible(int cantidad) {
         if (cantidad <= 0) {
-            throw new IllegalArgumentException("la cantidad a descontar debe ser mayor a cero");
+            throw new IllegalArgumentException(
+                    "La cantidad a descontar debe ser mayor a cero"
+            );
         }
+
         this.combustible = Math.max(0, this.combustible - cantidad);
     }
 
     /**
-     * incrementa el nivel de desgaste acumulado en la estructura de la nave.<br>
-     * <b>pre:</b> cantidad > 0.<br>
-     * <b>post:</b> se incrementa el desgaste limite del casco hasta un maximo de 100.<br>
+     * Incrementa el desgaste de la nave.
      *
-     * @param cantidad unidades de desgaste a sumar.
-     * @throws IllegalArgumentException si cantidad es menor o igual a cero.
+     * Pre: cantidad > 0.
+     * Post: aumenta el desgaste hasta un maximo de 100.
+     *
+     * @param cantidad puntos de desgaste
+     * @throws IllegalArgumentException si cantidad <= 0
      */
     public void generarDesgaste(int cantidad) {
         if (cantidad <= 0) {
-            throw new IllegalArgumentException("la cantidad de desgaste debe ser mayor a cero");
+            throw new IllegalArgumentException(
+                    "La cantidad de desgaste debe ser mayor a cero"
+            );
         }
+
         this.desgaste = Math.min(100, this.desgaste + cantidad);
     }
 
-
     /**
+     * Pre: ninguna.
+     * Post: no modifica la nave.
+     *
      * @return true si el desgaste es 80 o superior
      */
     public boolean requiereMantenimiento() {
@@ -159,78 +184,100 @@ public abstract class Nave {
     }
 
     /**
-     * Aumenta el combustible en la cantidad indicada.
+     * Aumenta el combustible.
      *
-     * @param cantidad cantidad positiva que no exceda la capacidad restante
-     * @throws IllegalArgumentException si la cantidad es inválida;
-     *         el combustible conserva su valor anterior
+     * Pre: cantidad positiva que no exceda la capacidad restante.
+     * Post: combustible incrementado en cantidad.
+     *
+     * @param cantidad cantidad a cargar
+     * @throws IllegalArgumentException si cantidad es invalida
      */
     public void cargarCombustible(int cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException(
-                    "La cantidad debe ser positiva");
+                    "La cantidad debe ser positiva"
+            );
         }
 
         if (cantidad > CAPACIDAD_COMBUSTIBLE - combustible) {
             throw new IllegalArgumentException(
-                    "La carga supera la capacidad máxima de combustible");
+                    "La carga supera la capacidad maxima de combustible"
+            );
         }
 
         combustible += cantidad;
     }
 
     /**
-     * Aumenta la energía en la cantidad indicada.
+     * Aumenta la energia.
      *
-     * @param cantidad cantidad positiva que no exceda la capacidad restante
-     * @throws IllegalArgumentException si la cantidad es inválida;
-     *         la energía conserva su valor anterior
+     * Pre: cantidad positiva que no exceda la capacidad restante.
+     * Post: energia incrementada en cantidad.
+     *
+     * @param cantidad cantidad a cargar
+     * @throws IllegalArgumentException si cantidad es invalida
      */
     public void cargarEnergia(int cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException(
-                    "La cantidad debe ser positiva");
+                    "La cantidad debe ser positiva"
+            );
         }
 
         if (cantidad > CAPACIDAD_ENERGIA - energia) {
             throw new IllegalArgumentException(
-                    "La carga supera la capacidad máxima de energía");
+                    "La carga supera la capacidad maxima de energia"
+            );
         }
 
         energia += cantidad;
     }
 
     /**
-     * Descuenta combustible y energía y aumenta el desgaste.
-     * Todas las validaciones se realizan antes de modificar los recursos.
+     * Consume combustible y energia y aumenta el desgaste.
+     * Valida todas las cantidades antes de modificar los recursos.
      *
-     * @param combustibleConsumido cantidad no negativa y disponible
-     * @param energiaConsumida cantidad no negativa y disponible
-     * @param desgasteAgregado aumento no negativo que no supere
-     *        el desgaste máximo
-     * @throws IllegalArgumentException si alguna cantidad es inválida;
-     *         ninguno de los recursos se modifica
+     * Pre:
+     * - Los consumos y el desgaste son no negativos.
+     * - Existen recursos suficientes.
+     * - El desgaste final no supera 100.
+     *
+     * Post: se actualizan los tres recursos.
+     *
+     * @param combustibleConsumido combustible a descontar
+     * @param energiaConsumida energia a descontar
+     * @param desgasteAgregado desgaste a agregar
+     * @throws IllegalArgumentException si alguna cantidad es invalida
      */
-    public void consumirRecursos(int combustibleConsumido, int energiaConsumida, int desgasteAgregado) {
+    public void consumirRecursos(
+            int combustibleConsumido,
+            int energiaConsumida,
+            int desgasteAgregado) {
 
-        if (combustibleConsumido < 0 || energiaConsumida < 0 || desgasteAgregado < 0) {
+        if (combustibleConsumido < 0 ||
+                energiaConsumida < 0 ||
+                desgasteAgregado < 0) {
             throw new IllegalArgumentException(
-                    "Los consumos y el desgaste agregado no pueden ser negativos");
+                    "Los consumos y el desgaste no pueden ser negativos"
+            );
         }
 
         if (combustibleConsumido > combustible) {
             throw new IllegalArgumentException(
-                    "Combustible insuficiente");
+                    "Combustible insuficiente"
+            );
         }
 
         if (energiaConsumida > energia) {
             throw new IllegalArgumentException(
-                    "Energía insuficiente");
+                    "Energia insuficiente"
+            );
         }
 
         if (desgasteAgregado > DESGASTE_MAXIMO - desgaste) {
             throw new IllegalArgumentException(
-                    "El desgaste superaría el máximo permitido");
+                    "El desgaste superaria el maximo permitido"
+            );
         }
 
         combustible -= combustibleConsumido;
@@ -239,8 +286,10 @@ public abstract class Nave {
     }
 
     /**
-     * Restablece el desgaste a cero.
-     * No modifica el combustible ni la energía.
+     * Restablece el desgaste.
+     *
+     * Pre: ninguna.
+     * Post: desgaste = 0.
      */
     public void realizarMantenimiento() {
         desgaste = 0;
@@ -249,15 +298,17 @@ public abstract class Nave {
     /**
      * Agrega un tripulante sin reemplazar integrantes existentes.
      *
-     * @param tripulante tripulante no nulo con ID válido y no registrado
-     * @throws IllegalArgumentException si el tripulante o su ID
-     *         son inválidos, o si el ID está duplicado;
-     *         la colección conserva su contenido anterior
+     * Pre: tripulante != null, ID valido y no registrado.
+     * Post: incorpora al tripulante a la nave.
+     *
+     * @param tripulante tripulante a incorporar
+     * @throws IllegalArgumentException si es invalido o duplicado
      */
     public void agregarTripulante(Tripulante tripulante) {
         if (tripulante == null) {
             throw new IllegalArgumentException(
-                    "El tripulante no puede ser null");
+                    "El tripulante no puede ser null"
+            );
         }
 
         String idTripulante = tripulante.getID();
@@ -265,16 +316,21 @@ public abstract class Nave {
 
         if (tripulacion.containsKey(idTripulante)) {
             throw new IllegalArgumentException(
-                    "Ya existe un tripulante con ese ID");
+                    "Ya existe un tripulante con ese ID"
+            );
         }
 
         tripulacion.put(idTripulante, tripulante);
     }
 
     /**
-     * @param idTripulante ID no nulo ni vacío
-     * @return tripulante encontrado, o null si no existe
-     * @throws IllegalArgumentException si el ID es inválido
+     * Busca un tripulante por ID.
+     *
+     * Pre: ID no nulo ni vacio.
+     * Post: no modifica la tripulacion.
+     *
+     * @param idTripulante ID buscado
+     * @return tripulante encontrado o null
      */
     public Tripulante buscarTripulante(String idTripulante) {
         validarIdTripulante(idTripulante);
@@ -282,20 +338,25 @@ public abstract class Nave {
     }
 
     /**
-     * Devuelve una copia no modificable de la colección.
-     * Los objetos Tripulante no se copian y el orden no está garantizado.
+     * Devuelve una coleccion no modificable.
      *
-     * @return colección de los tripulantes actuales
+     * Pre: ninguna.
+     * Post: no modifica la tripulacion.
+     *
+     * @return tripulantes actuales
      */
     public Collection<Tripulante> getTripulacion() {
         return List.copyOf(tripulacion.values());
     }
 
     /**
-     * @return true si hay al menos cinco integrantes
-     *         y al menos uno tiene cargo de capitán
+     * Comprueba la validez de la tripulacion.
+     *
+     * Pre: ninguna.
+     * Post: no modifica la nave.
+     *
+     * @return true si hay al menos cinco tripulantes y un capitan
      */
-
     public boolean tieneTripulacionValida() {
         if (tripulacion.size() < TRIPULACION_MINIMA) {
             return false;
@@ -310,59 +371,284 @@ public abstract class Nave {
         return false;
     }
 
-
+    /**
+     * Valida el identificador de un tripulante.
+     *
+     * Pre: ninguna.
+     * Post: no modifica la nave.
+     *
+     * @param idTripulante identificador
+     * @throws IllegalArgumentException si es nulo o vacio
+     */
     private void validarIdTripulante(String idTripulante) {
         if (idTripulante == null || idTripulante.isBlank()) {
             throw new IllegalArgumentException(
-                    "El ID del tripulante no puede ser null ni vacío");
+                    "El ID del tripulante no puede ser null ni vacio"
+            );
         }
     }
-
 
     /**
      * Solicita al motor preparar el salto.
      *
-     * <b>pre:</b> la nave tiene una tripulación válida
-     * y el motor está Disponible.
+     * Pre: tripulacion valida y motor Disponible.
+     * Post: motor en PreparandoSalto.
      *
-     * <b>post:</b> el motor está PreparandoSalto.
-     *
-     * @throws IllegalStateException si la tripulación es inválida
-     *         o el motor no permite preparar el salto.
+     * @throws IllegalStateException si no puede preparar el salto
      */
     public void prepararSalto() {
         if (!tieneTripulacionValida()) {
             throw new IllegalStateException(
-                    "La nave no tiene una tripulación válida"
+                    "La nave no tiene una tripulacion valida"
             );
         }
 
         motorWarp.prepararSalto();
     }
 
-
     /**
-     * Ejecuta el salto y lo finaliza en el mismo llamado.
+     * Ejecuta el salto y finaliza el enfriamiento.
      *
-     * <b>pre:</b> el motor está PreparandoSalto.
-     * <b>post:</b> el motor pasa por EnWarp y termina Disponible.
+     * Pre: motor en PreparandoSalto.
+     * Post: motor pasa por EnWarp y termina Disponible.
      *
      * @throws IllegalStateException si el estado no permite saltar
-     * @throws InterruptedException si el hilo actual es interrumpido
      */
     public void saltar() {
         try {
             motorWarp.entrarEnWarp();
             motorWarp.iniciarEnfriamiento();
-            // aplicas el retardo de 10 segundos (10000 milisegundos)
-           Thread.sleep(10000);
+
+            Thread.sleep(10000);
+
             motorWarp.volverAlDisponible();
 
         } catch (InterruptedException e) {
-            // Zona de recuperación: esto se ejecuta SÓLO si otro proceso cancela la espera de 10 segundos
-            Bitacora.getInstance().registrar("Alerta: El ciclo de enfriamiento fue interrumpido forzosamente.");
-            // Forzamos al motor a volver a un estado seguro tras la emergencia
+            Bitacora.getInstance().registrar(
+                    "Alerta: El ciclo de enfriamiento fue interrumpido."
+            );
+
             motorWarp.volverAlDisponible();
+        }
+    }
+
+    // =====================================================
+    // NUEVO - DESTRUCCION DE NAVE
+    // =====================================================
+
+    /**
+     * Indica si la nave esta destruida.
+     *
+     * Pre: ninguna.
+     * Post: no modifica el estado de la nave.
+     *
+     * @return true si fue destruida
+     */
+    public final boolean estaDestruida() {
+        return destruida;
+    }
+
+    /**
+     * Destruye definitivamente la nave.
+     *
+     * Pre: ninguna.
+     * Post:
+     * - destruida = true.
+     * - combustible = 0.
+     * - energia = 0.
+     * - desgaste = 100.
+     * - tripulacion vacia.
+     *
+     * La operacion es idempotente.
+     */
+    public final void destruir() {
+        if (destruida) {
+            return;
+        }
+
+        destruida = true;
+        combustible = 0;
+        energia = 0;
+        desgaste = DESGASTE_MAXIMO;
+        tripulacion.clear();
+    }
+
+    // =====================================================
+    // NUEVO - ENCUENTROS ENTRE NAVES
+    // =====================================================
+
+    /**
+     * Resuelve el encuentro con esta nave enemiga.
+     *
+     * Pre:
+     * - naveJugador != null.
+     * - naveJugador != this.
+     * - ninguna de las naves esta destruida.
+     *
+     * Post:
+     * - Resuelve el enfrentamiento mediante Double Dispatch.
+     * - Registra el resultado en la bitacora.
+     * - Si el jugador pierde, destruye su nave.
+     * - Si gana o hay pacto, mantiene sus recursos.
+     *
+     * @param naveJugador nave del jugador
+     * @throws IllegalArgumentException si la nave es invalida
+     * @throws IllegalStateException si alguna nave esta destruida
+     */
+    @Override
+    public final void interactuar(Nave naveJugador) {
+        validarRival(naveJugador);
+
+        ResultadoCombate resultado =
+                naveJugador.enfrentar(this);
+
+        Bitacora.getInstance().registrar(
+                "Encuentro: nave " + naveJugador.getId()
+                        + " (" + naveJugador.getClass().getSimpleName()
+                        + ") contra nave " + getId()
+                        + " (" + getClass().getSimpleName()
+                        + "): " + resultado
+        );
+
+        if (resultado == ResultadoCombate.PIERDE) {
+            naveJugador.destruir();
+
+            Bitacora.getInstance().registrar(
+                    "La nave " + naveJugador.getId()
+                            + " fue destruida en combate."
+            );
+        }
+    }
+
+    /**
+     * Primera llamada del Double Dispatch.
+     *
+     * Pre:
+     * - rival != null.
+     * - rival != this.
+     * - ninguna nave destruida.
+     *
+     * Post:
+     * - Devuelve el resultado desde la perspectiva de esta nave.
+     * - No modifica recursos ni tripulacion.
+     *
+     * @param rival nave enemiga
+     * @return resultado del enfrentamiento
+     */
+    public abstract ResultadoCombate enfrentar(Nave rival);
+
+    /**
+     * Segunda llamada del Double Dispatch para Exploradora.
+     *
+     * Pre: navePropia != null.
+     * Post: devuelve el resultado sin alterar estados.
+     *
+     * @param navePropia exploradora del jugador
+     * @return resultado desde la perspectiva del jugador
+     */
+    protected abstract ResultadoCombate recibirEncuentroDe(NaveExploradora navePropia);
+
+    /**
+     * Segunda llamada del Double Dispatch para Carguero.
+     *
+     * Pre: navePropia != null.
+     * Post: devuelve el resultado sin alterar estados.
+     *
+     * @param navePropia carguero del jugador
+     * @return resultado desde la perspectiva del jugador
+     */
+    protected abstract ResultadoCombate recibirEncuentroDe(NaveCarguero navePropia);
+
+    /**
+     * Segunda llamada del Double Dispatch para Combate.
+     *
+     * Pre: navePropia != null.
+     * Post: devuelve el resultado sin alterar estados.
+     *
+     * @param navePropia nave de combate del jugador
+     * @return resultado desde la perspectiva del jugador
+     */
+    protected abstract ResultadoCombate recibirEncuentroDe(NaveCombate navePropia);
+
+    /**
+     * Valida un enfrentamiento.
+     *
+     * Pre: ninguna.
+     * Post: no modifica el estado de las naves.
+     *
+     * @param rival nave enemiga
+     * @throws IllegalArgumentException si rival es null o es esta nave
+     * @throws IllegalStateException si alguna nave esta destruida
+     */
+    protected final void validarRival(Nave rival) {
+        if (rival == null) {
+            throw new IllegalArgumentException(
+                    "La nave rival no puede ser null"
+            );
+        }
+
+        if (rival == this) {
+            throw new IllegalArgumentException(
+                    "Una nave no puede enfrentarse a si misma"
+            );
+        }
+
+        if (destruida || rival.estaDestruida()) {
+            throw new IllegalStateException(
+                    "No se puede combatir con una nave destruida"
+            );
+        }
+    }
+
+
+    /**
+     * Consulta las gemas acumuladas.
+     *
+     * Pre: ninguna.
+     * Post: no modifica el estado.
+     *
+     * @return cantidad actual de gemas
+     */
+    public int getGemas() {
+        return gemas;
+    }
+
+    /**
+     * Incorpora gemas al inventario de la nave.
+     *
+     * Pre:
+     * - cantidad > 0.
+     * - La nave no esta destruida.
+     * - La suma debe poder representarse como int.
+     *
+     * Post:
+     * - Incrementa gemas en cantidad.
+     * - No modifica otros recursos.
+     *
+     * @param cantidad gemas a incorporar
+     * @throws IllegalArgumentException si cantidad <= 0
+     * @throws IllegalStateException si la nave esta destruida
+     *         o la suma excede el rango de int
+     */
+    public void agregarGemas(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException(
+                    "La cantidad debe ser positiva"
+            );
+        }
+
+        if (destruida) {
+            throw new IllegalStateException(
+                    "La nave esta destruida"
+            );
+        }
+
+        try {
+            gemas = Math.addExact(gemas, cantidad);
+        } catch (ArithmeticException ex) {
+            throw new IllegalStateException(
+                    "Capacidad numerica de gemas excedida", ex
+            );
         }
     }
 
