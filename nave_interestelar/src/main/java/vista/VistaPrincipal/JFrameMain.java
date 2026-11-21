@@ -376,6 +376,7 @@ public class JFrameMain extends JFrame
                 Bitacora.getInstance();
 
         // Crear asistente sobre el universo existente.
+
         AsistenteDeComandos asistente =
                 new AsistenteDeComandos(
                         universo.getNave(),
@@ -383,15 +384,19 @@ public class JFrameMain extends JFrame
                         universo.getTablero()
                 );
 
-        // Conectar navegacion y sensores.
-        Sensores sensores = new Sensores(
-                universo.getTablero()
+        // NUEVO: conectar los objetivos de las misiones
+        // con el universo que utiliza JPanelTablero.
+        asistente.setNotificadorObjetivo(
+                universo::actualizarObjetivoMision
         );
 
-        ReglasNavegacion reglas =
-                new ReglasNavegacion(sensores);
+        // Mantener las reglas de navegacion existentes.
+        asistente.setReglasNavegacion(
+                new ReglasNavegacion(
+                        new Sensores(universo.getTablero())
+                )
+        );
 
-        asistente.setReglasNavegacion(reglas);
 
         // El proveedor devuelve la nave creada
         // por el usuario, no la nave temporal.

@@ -25,7 +25,7 @@ import modelo.elementos.ElementoDelUniverso;
 public abstract class Mision {
 
 	/** Pausa entre turnos, para que la vista pueda mostrar el avance. */
-	private static final int PAUSA_MS = 300;
+	private static final int PAUSA_MS = 1000;
 	/** Tope de turnos: evita que la misión quede en un bucle infinito. */
 	private static final int LIMITE_TURNOS = 500;
 
@@ -76,24 +76,66 @@ public abstract class Mision {
 	// Fase 1: preparar
 	// ------------------------------------------------------------------
 
+
+	/**
+	 * Prepara la ejecucion de la mision.
+	 *
+	 * Pre:
+	 * - AsistenteDeComandos inicializado.
+	 * - Nave y tablero disponibles.
+	 *
+	 * Post:
+	 * - Verifica los recursos iniciales.
+	 * - Determina el objetivo.
+	 * - Publica el objetivo para actualizar el tablero.
+	 * - Calcula y almacena la ruta.
+	 *
+	 * @return true si pudo prepararse
+	 */
 	protected boolean preparar() {
-		if (!AC.tieneRecursosDisponibles(getCombustibleRequerido(), getEnergiaRequerida())) {
-			registrar("recursos insuficientes para iniciar la misión");
+
+		if (!AC.tieneRecursosDisponibles(
+				getCombustibleRequerido(),
+				getEnergiaRequerida())) {
+
+			registrar(
+					"recursos insuficientes para iniciar la mision"
+			);
+
 			return false;
 		}
+
+		// Determinar el objetivo de esta mision.
 		objetivo = definirObjetivo();
+
+		// NUEVO: informar el objetivo al universo.
+		AC.publicarObjetivo(objetivo);
+
 		Posicion origen = AC.posicionNave();
+
 		ruta = calcularRuta(origen, objetivo);
+
 		recorrido.add(origen);
+
 		llegoAlDestino = origen.equals(objetivo);
 
-		List<Posicion> planificado = new ArrayList<Posicion>();
+		List<Posicion> planificado =
+				new ArrayList<>();
+
 		planificado.add(origen);
 		planificado.addAll(ruta);
-		registrar("ruta planificada hacia " + texto(objetivo) + " (" + ruta.size()
-				+ " pasos): " + formatear(planificado));
+
+		registrar(
+				"ruta planificada hacia "
+						+ texto(objetivo)
+						+ " (" + ruta.size()
+						+ " pasos): "
+						+ formatear(planificado)
+		);
+
 		return true;
 	}
+
 
 	/**
 	 * Ruta nominal: la que seguirían las reglas de navegación si no hubiera

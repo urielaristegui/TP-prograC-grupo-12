@@ -34,7 +34,7 @@ public class Universo {
     private Nave nave;
     private final Tablero tablero;
     private final Destino destino;
-    private Posicion objetivo;
+    private volatile Posicion objetivo;
 
     /**
      * Crea el universo y distribuye sus elementos.
@@ -138,6 +138,35 @@ public class Universo {
 
         return objetivo;
     }
+
+
+    /**
+     * Actualiza el objetivo visual de la mision activa.
+     *
+     * Pre:
+     * - nuevoObjetivo != null.
+     * - nuevoObjetivo pertenece al tablero.
+     *
+     * Post:
+     * - El objetivo visual coincide con el de la mision.
+     * - Los observadores reciben una notificacion.
+     * - No modifica la posicion de la nave.
+     * - No modifica el objetivo interno de Tablero.
+     *
+     * @param nuevoObjetivo destino de la mision
+     */
+    public void actualizarObjetivoMision(
+            Posicion nuevoObjetivo) {
+
+        validarPosicion(nuevoObjetivo);
+
+        this.objetivo = nuevoObjetivo;
+
+        // Notificar para que JPanelTablero actualice
+        // la coordenada que representa graficamente.
+        tablero.notificarObservadores();
+    }
+
 
     /**
      * Comprueba si una coordenada pertenece al tablero.
@@ -417,5 +446,6 @@ public class Universo {
                 nuevaNave.getPosicion()
         );
     }
+
 
 }

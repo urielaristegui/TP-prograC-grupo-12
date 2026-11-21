@@ -8,6 +8,9 @@ import modelo.elementos.ElementoDelUniverso;
 import modelo.nave.Nave;
 import modelo.sensores.ReglasNavegacion;
 
+import java.util.function.Consumer;
+
+
 /**
  * Único punto de contacto entre las misiones y el resto del sistema
  * (nave, bitácora, tablero, navegación). Coordina y delega: no decide nada
@@ -25,6 +28,7 @@ public class AsistenteDeComandos {
 	private Destino destino;
 	private ReglasNavegacion reglas;
 	private Posicion base;
+	private Consumer<Posicion> notificadorObjetivo;
 
 	public AsistenteDeComandos(Nave nave, Bitacora bitacora) {
 		setNave(nave);
@@ -245,4 +249,52 @@ public class AsistenteDeComandos {
 	public void agregarGemas(int cantidad) {
 		nave.agregarGemas(cantidad);
 	}
+
+
+	/**
+	 * Configura el receptor de objetivos de mision.
+	 *
+	 * Pre: notificador != null.
+	 * Post: conserva el notificador sin modificar
+	 *       recursos ni posiciones.
+	 *
+	 * @param notificador funcion que recibe el objetivo
+	 */
+	public void setNotificadorObjetivo(
+			Consumer<Posicion> notificador) {
+
+		if (notificador == null) {
+			throw new IllegalArgumentException(
+					"El notificador no puede ser null"
+			);
+		}
+
+		this.notificadorObjetivo = notificador;
+	}
+
+	/**
+	 * Publica la coordenada objetivo de una mision.
+	 *
+	 * Pre: objetivo != null.
+	 *
+	 * Post:
+	 * - Si existe un receptor, le comunica el objetivo.
+	 * - No modifica los recursos ni la ruta.
+	 * - Permite funcionar sin receptor en pruebas aisladas.
+	 *
+	 * @param objetivo posicion objetivo de la mision
+	 */
+	public void publicarObjetivo(Posicion objetivo) {
+
+		if (objetivo == null) {
+			throw new IllegalArgumentException(
+					"El objetivo no puede ser null"
+			);
+		}
+
+		if (notificadorObjetivo != null) {
+			notificadorObjetivo.accept(objetivo);
+		}
+	}
+
 }
