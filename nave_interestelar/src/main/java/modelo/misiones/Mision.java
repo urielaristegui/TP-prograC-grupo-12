@@ -138,9 +138,20 @@ public abstract class Mision {
 					motivoFallo = "se superó el límite de turnos sin llegar al destino";
 					break;
 				}
+
 				turnoDeLaNave();
+
+				// Si la nave fue destruida durante el turno,
+				// la mision termina inmediatamente.
+				if (AC.naveDestruida() || !motivoFallo.isEmpty()) {
+					break;
+				}
+
+				// Solo avanzar el tablero si la nave sigue operativa.
 				AC.turnoDelTablero();
+
 				pausar();
+
 			}
 		} catch (IllegalArgumentException e) {
 			// Nave rechazó una operación (recurso insuficiente, desgaste fuera de rango...)

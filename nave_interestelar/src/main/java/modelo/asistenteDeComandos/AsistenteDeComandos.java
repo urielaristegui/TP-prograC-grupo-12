@@ -102,13 +102,41 @@ public class AsistenteDeComandos {
 		return nave.getDesgaste();
 	}
 
-	/** Destruida en combate, o por la regla del enunciado: desgaste en 100, o energía o combustible en 0. */
+
+	/**
+	 * Comprueba y actualiza el estado de destruccion de la nave.
+	 *
+	 * Pre: nave != null.
+	 *
+	 * Post:
+	 * - Si la energia o el combustible llegan a 0,
+	 *   o el desgaste alcanza 100, destruye la nave.
+	 * - La destruccion elimina toda la tripulacion.
+	 * - Si ya estaba destruida, no repite la operacion.
+	 * - Si sigue operativa, no modifica su estado.
+	 *
+	 * @return true si la nave esta destruida
+	 */
 	public boolean naveDestruida() {
-		return nave.estaDestruida()
-				|| nave.getDesgaste() >= DESGASTE_MAXIMO
-				|| nave.getEnergia() <= 0
-				|| nave.getCombustible() <= 0;
+
+		if (!nave.estaDestruida()
+				&& (nave.getEnergia() <= 0
+				|| nave.getCombustible() <= 0
+				|| nave.getDesgaste() >= DESGASTE_MAXIMO)) {
+
+			nave.destruir();
+
+			registrarEvento(
+					"Nave " + nave.getId()
+							+ " destruida: recursos agotados "
+							+ "o desgaste maximo. "
+							+ "La tripulacion ha fallecido."
+			);
+		}
+
+		return nave.estaDestruida();
 	}
+
 
 	/** M-01: entrega de recursos a la nave aliada. */
 	public void transferirRecursos(int combustible, int energia) {
