@@ -1,3 +1,4 @@
+
 package vista.VistaPrincipal;
 
 import java.awt.BorderLayout;
@@ -6,6 +7,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,140 +19,320 @@ import javax.swing.SwingUtilities;
 import Controlador.AutenticacionController;
 import Controlador.MainController;
 import Controlador.TripulantesController;
+import Controlador.CreacionNaveController;
+
 import modelo.UniversoAlterno.PlataformaDeCarga;
 import modelo.Persistencia.UsuarioDTO;
 import modelo.universo.Universo;
+import modelo.bitacora.Bitacora;
+import modelo.asistenteDeComandos.AsistenteDeComandos;
+import modelo.sensores.ReglasNavegacion;
+import modelo.sensores.Sensores;
+
+import vista.Misiones.PanelMisiones;
 import vista.JPanelTablero;
 import vista.PanelBitacoraYSensores;
 import vista.Persistencia.NavegacionAccesoObserver;
-import vista.Tripulantes.JPanelTripulantes;
 import vista.Persistencia.AutenticacionObserver;
 import vista.Persistencia.JPanelLogin;
-import vista.VisorRecondito.JPanelVisorRecondito;
 import vista.Persistencia.JPanelRegistro;
-import Controlador.CreacionNaveController;
+import vista.Tripulantes.JPanelTripulantes;
+import vista.VisorRecondito.JPanelVisorRecondito;
 import vista.Creacion.JPanelCreacionNave;
 
-public class JFrameMain extends JFrame implements AutenticacionObserver, NavegacionAccesoObserver {
+/**
+ * Ventana principal del sistema.
+ *
+ * Coordina las pantallas de autenticacion
+ * y las secciones de la nave.
+ *
+ * Invariantes:
+ * - mainController != null.
+ * - authController != null.
+ * - universo != null.
+ * - Las secciones utilizan el mismo universo.
+ */
+public class JFrameMain extends JFrame
+        implements AutenticacionObserver,
+        NavegacionAccesoObserver {
 
-    private static final String CARD_ACCESO = "ACCESO";
-    private static final String CARD_SISTEMA = "SISTEMA";
+    private static final String CARD_ACCESO =
+            "ACCESO";
+
+    private static final String CARD_SISTEMA =
+            "SISTEMA";
 
     private final MainController mainController;
     private final AutenticacionController authController;
 
-    private final CardLayout cardLayoutRaiz = new CardLayout();
-    private final JPanel contenedorRaiz = new JPanel(cardLayoutRaiz);
+    private final CardLayout cardLayoutRaiz =
+            new CardLayout();
 
-    // Contenedor de Login/Registro
-    private final CardLayout cardLayoutAcceso = new CardLayout();
-    private final JPanel panelAccesoContainer = new JPanel(cardLayoutAcceso);
+    private final JPanel contenedorRaiz =
+            new JPanel(cardLayoutRaiz);
 
-    // Panel Central del Juego
+    private final CardLayout cardLayoutAcceso =
+            new CardLayout();
+
+    private final JPanel panelAccesoContainer =
+            new JPanel(cardLayoutAcceso);
+
     private JTabbedPane tabbedPanePrincipal;
     private JLabel lblUsuarioHeader;
 
     private final Universo universo;
 
-    public JFrameMain(MainController mainController, AutenticacionController authController, Universo universo) {
-        super("Software Embarcado — Nave Interestelar (Panel Principal)");
-        if (mainController == null || authController == null) {
-            throw new IllegalArgumentException("Los Controladores no pueden ser nulos.");
+    /**
+     * Construye la ventana principal.
+     *
+     * Pre: controladores y universo no nulos.
+     *
+     * Post:
+     * - Registra observadores.
+     * - Inicializa login y registro.
+     * - Inicializa las secciones del sistema.
+     *
+     * @param mainController controlador principal
+     * @param authController controlador de autenticacion
+     * @param universo universo del jugador
+     */
+    public JFrameMain(
+            MainController mainController,
+            AutenticacionController authController,
+            Universo universo) {
+
+        super(
+                "Software Embarcado - Nave Interestelar"
+        );
+
+        if (mainController == null
+                || authController == null
+                || universo == null) {
+
+            throw new IllegalArgumentException(
+                    "Controladores y universo son obligatorios"
+            );
         }
+
         this.mainController = mainController;
         this.authController = authController;
+        this.universo = universo;
 
         this.authController.agregarObservador(this);
-        this.authController.agregarObservador(this.mainController);
-        this.authController.setNavegacionObserver(this);
 
-        this.universo= universo;
+        this.authController.agregarObservador(
+                this.mainController
+        );
+
+        this.authController.setNavegacionObserver(
+                this
+        );
 
         inicializarUI();
     }
 
+    /**
+     * Inicializa los componentes principales.
+     *
+     * Pre: referencias del constructor validas.
+     *
+     * Post:
+     * - Configura la ventana.
+     * - Crea las pantallas.
+     * - Muestra el acceso.
+     */
     private void inicializarUI() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1024, 720));
 
-        // 1. Configurar vistas de Acceso (Login y Registro)
-        JPanelLogin panelLogin = new JPanelLogin(authController);
-        JPanelRegistro panelRegistro = new JPanelRegistro(authController);
+        setDefaultCloseOperation(
+                JFrame.EXIT_ON_CLOSE
+        );
 
-        panelAccesoContainer.add(panelLogin, "LOGIN");
-        panelAccesoContainer.add(panelRegistro, "REGISTRO");
-        cardLayoutAcceso.show(panelAccesoContainer, "LOGIN");
+        setMinimumSize(
+                new Dimension(1024, 720)
+        );
 
-        // 2. Configurar Vista Principal del Juego con Pestañas
-        JPanel panelSistemaConNavegacion = construirPanelSistema();
+        // ==========================================
+        // LOGIN Y REGISTRO
+        // ==========================================
 
-        // 3. Agregar pantallas al CardLayout raíz
-        contenedorRaiz.add(panelAccesoContainer, CARD_ACCESO);
-        contenedorRaiz.add(panelSistemaConNavegacion, CARD_SISTEMA);
+        JPanelLogin panelLogin =
+                new JPanelLogin(authController);
+
+        JPanelRegistro panelRegistro =
+                new JPanelRegistro(authController);
+
+        panelAccesoContainer.add(
+                panelLogin,
+                "LOGIN"
+        );
+
+        panelAccesoContainer.add(
+                panelRegistro,
+                "REGISTRO"
+        );
+
+        cardLayoutAcceso.show(
+                panelAccesoContainer,
+                "LOGIN"
+        );
+
+        // ==========================================
+        // SISTEMA
+        // ==========================================
+
+        JPanel panelSistema =
+                construirPanelSistema();
+
+        contenedorRaiz.add(
+                panelAccesoContainer,
+                CARD_ACCESO
+        );
+
+        contenedorRaiz.add(
+                panelSistema,
+                CARD_SISTEMA
+        );
 
         add(contenedorRaiz);
-        cardLayoutRaiz.show(contenedorRaiz, CARD_ACCESO);
+
+        cardLayoutRaiz.show(
+                contenedorRaiz,
+                CARD_ACCESO
+        );
+
         pack();
         setLocationRelativeTo(null);
     }
 
+    /**
+     * Construye el panel principal.
+     *
+     * Pre: universo inicializado.
+     *
+     * Post:
+     * - Crea cinco pestañas.
+     * - Comparte el mismo universo.
+     * - Conecta creacion, misiones y tablero.
+     *
+     * @return panel principal
+     */
     private JPanel construirPanelSistema() {
-        JPanel panelBase = new JPanel(new BorderLayout());
 
-        // Header Superior
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(30, 35, 45));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        JPanel panelBase =
+                new JPanel(new BorderLayout());
 
-        JLabel lblTitulo = new JLabel("PANEL DE CONTROL INTERESTELAR");
+        // ==========================================
+        // ENCABEZADO
+        // ==========================================
+
+        JPanel headerPanel =
+                new JPanel(new BorderLayout());
+
+        headerPanel.setBackground(
+                new Color(30, 35, 45)
+        );
+
+        headerPanel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        10, 15, 10, 15
+                )
+        );
+
+        JLabel lblTitulo = new JLabel(
+                "PANEL DE CONTROL INTERESTELAR"
+        );
+
         lblTitulo.setForeground(Color.WHITE);
-        lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 16f));
 
-        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        lblTitulo.setFont(
+                lblTitulo.getFont().deriveFont(
+                        Font.BOLD,
+                        16f
+                )
+        );
+
+        JPanel userPanel = new JPanel(
+                new FlowLayout(
+                        FlowLayout.RIGHT, 10, 0
+                )
+        );
+
         userPanel.setOpaque(false);
 
-        lblUsuarioHeader = new JLabel("Operador: ---");
-        lblUsuarioHeader.setForeground(new Color(0, 230, 120));
-        lblUsuarioHeader.setFont(lblUsuarioHeader.getFont().deriveFont(Font.BOLD, 12f));
+        lblUsuarioHeader = new JLabel(
+                "Operador: ---"
+        );
 
-        JButton btnCerrarSesion = new JButton("Cerrar Sesión");
-        btnCerrarSesion.addActionListener(e -> authController.cerrarSesion());
+        lblUsuarioHeader.setForeground(
+                new Color(0, 230, 120)
+        );
+
+        lblUsuarioHeader.setFont(
+                lblUsuarioHeader.getFont().deriveFont(
+                        Font.BOLD,
+                        12f
+                )
+        );
+
+        JButton btnCerrarSesion =
+                new JButton("Cerrar Sesión");
+
+        btnCerrarSesion.addActionListener(
+                e -> authController.cerrarSesion()
+        );
 
         userPanel.add(lblUsuarioHeader);
         userPanel.add(btnCerrarSesion);
 
-        headerPanel.add(lblTitulo, BorderLayout.WEST);
-        headerPanel.add(userPanel, BorderLayout.EAST);
-        panelBase.add(headerPanel, BorderLayout.NORTH);
+        headerPanel.add(
+                lblTitulo,
+                BorderLayout.WEST
+        );
 
-        // TabbedPane con todas las ventanas de desarrollo
+        headerPanel.add(
+                userPanel,
+                BorderLayout.EAST
+        );
+
+        panelBase.add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
+
+        // ==========================================
+        // PESTAÑAS DEL SISTEMA
+        // ==========================================
+
         tabbedPanePrincipal = new JTabbedPane();
 
-
-// CONTROLADOR COMPARTIDO DE TRIPULANTES
-
+        // Controlador compartido de tripulantes.
         TripulantesController tripulantesController =
                 new TripulantesController();
 
-// CONTROLADOR DE CREACION DE NAVE
-
+        // Controlador de creacion.
         CreacionNaveController creacionController =
                 new CreacionNaveController(
                         universo,
                         tripulantesController
                 );
 
-// PESTANA 1 - CREACION DE NAVE
+        // ==========================================
+        // PESTAÑA 1 - CREACION
+        // ==========================================
 
         JPanelCreacionNave panelCreacion =
-                new JPanelCreacionNave(creacionController);
+                new JPanelCreacionNave(
+                        creacionController
+                );
 
         tabbedPanePrincipal.addTab(
                 "Configuracion & Creacion",
                 panelCreacion
         );
 
-// PESTANA 2 - TRIPULANTES Y HABERES
+        // ==========================================
+        // PESTAÑA 2 - TRIPULANTES
+        // ==========================================
 
         JPanelTripulantes panelTripulantes =
                 new JPanelTripulantes(
@@ -162,79 +344,212 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
                 panelTripulantes
         );
 
+        // ==========================================
+        // PESTAÑA 3 - TABLERO
+        // ==========================================
 
-        // Pestaña 3: Tablero y Control de Nave (Santi / Uriel / Agustín)
-        JPanel TableroControl = new JPanel(new BorderLayout(10, 0));
+        JPanel tableroControl = new JPanel(
+                new BorderLayout(10, 0)
+        );
 
-        TableroControl.add(
+        tableroControl.add(
                 new JPanelTablero(universo),
                 BorderLayout.CENTER
         );
 
-        TableroControl.add(
+        tableroControl.add(
                 new PanelBitacoraYSensores(),
                 BorderLayout.EAST
         );
 
         tabbedPanePrincipal.addTab(
-                "🚀 Control de Nave & Tablero",
-                TableroControl
+                "Control de Nave & Tablero",
+                tableroControl
         );
 
-        // Pestaña 4: Visor Recóndito - Concurrencia (Jere)
-        PlataformaDeCarga plataformaModelo = new PlataformaDeCarga(5);
-        JPanelVisorRecondito panelVisor = new JPanelVisorRecondito(plataformaModelo.getCapacidadMaxima());
-        plataformaModelo.registrarObservador(panelVisor);
+        // ==========================================
+        // PESTAÑA 4 - MISIONES
+        // ==========================================
 
-        // Conectar Controlador desacoplado del visor
-        new Controlador.VisorReconditoController(plataformaModelo, panelVisor);
-        tabbedPanePrincipal.addTab("🌀 Visor Recóndito (Concurrencia)", panelVisor);
+        // Compartir la misma Bitacora.
+        Bitacora bitacora =
+                Bitacora.getInstance();
 
-        panelBase.add(tabbedPanePrincipal, BorderLayout.CENTER);
+        // Crear asistente sobre el universo existente.
+        AsistenteDeComandos asistente =
+                new AsistenteDeComandos(
+                        universo.getNave(),
+                        bitacora,
+                        universo.getTablero()
+                );
+
+        // Conectar navegacion y sensores.
+        Sensores sensores = new Sensores(
+                universo.getTablero()
+        );
+
+        ReglasNavegacion reglas =
+                new ReglasNavegacion(sensores);
+
+        asistente.setReglasNavegacion(reglas);
+
+        // El proveedor devuelve la nave creada
+        // por el usuario, no la nave temporal.
+        PanelMisiones panelMisiones =
+                new PanelMisiones(
+                        asistente,
+                        bitacora,
+                        creacionController::getNave
+                );
+
+        tabbedPanePrincipal.addTab(
+                "Misiones",
+                panelMisiones
+        );
+
+        // Actualizar el estado al abrir la pestaña.
+        tabbedPanePrincipal.addChangeListener(e -> {
+
+            if (tabbedPanePrincipal.getSelectedComponent()
+                    == panelMisiones) {
+
+                panelMisiones.refrescarEstadoNave();
+            }
+        });
+
+        // ==========================================
+        // PESTAÑA 5 - CONCURRENCIA
+        // ==========================================
+
+        PlataformaDeCarga plataformaModelo =
+                new PlataformaDeCarga(5);
+
+        JPanelVisorRecondito panelVisor =
+                new JPanelVisorRecondito(
+                        plataformaModelo.getCapacidadMaxima()
+                );
+
+        plataformaModelo.registrarObservador(
+                panelVisor
+        );
+
+        new Controlador.VisorReconditoController(
+                plataformaModelo,
+                panelVisor
+        );
+
+        tabbedPanePrincipal.addTab(
+                "Visor Recondito (Concurrencia)",
+                panelVisor
+        );
+
+        // ==========================================
+        // FINALIZAR PANEL
+        // ==========================================
+
+        panelBase.add(
+                tabbedPanePrincipal,
+                BorderLayout.CENTER
+        );
+
         return panelBase;
     }
 
-    private JPanel crearPanelPlaceholder(String titulo) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        JLabel lbl = new JLabel(titulo, JLabel.CENTER);
-        lbl.setFont(lbl.getFont().deriveFont(Font.ITALIC, 14f));
-        panel.add(lbl, BorderLayout.CENTER);
-        return panel;
-    }
-
-    // --- Implementación de Observadores ---
-
+    /**
+     * Notifica una autenticacion exitosa.
+     *
+     * Pre: usuario != null.
+     * Post: muestra el sistema principal.
+     */
     @Override
-    public void onAutenticacionExitosa(UsuarioDTO usuario) {
+    public void onAutenticacionExitosa(
+            UsuarioDTO usuario) {
+
         SwingUtilities.invokeLater(() -> {
-            lblUsuarioHeader.setText("Operador: " + usuario.getNombreUsuario());
-            cardLayoutRaiz.show(contenedorRaiz, CARD_SISTEMA);
+
+            lblUsuarioHeader.setText(
+                    "Operador: "
+                            + usuario.getNombreUsuario()
+            );
+
+            cardLayoutRaiz.show(
+                    contenedorRaiz,
+                    CARD_SISTEMA
+            );
         });
     }
 
+    /**
+     * Notifica el cierre de sesion.
+     *
+     * Pre: ninguna.
+     * Post: vuelve al formulario de login.
+     */
     @Override
     public void onSesionCerrada() {
+
         SwingUtilities.invokeLater(() -> {
-            lblUsuarioHeader.setText("Operador: ---");
-            cardLayoutAcceso.show(panelAccesoContainer, "LOGIN");
-            cardLayoutRaiz.show(contenedorRaiz, CARD_ACCESO);
+
+            lblUsuarioHeader.setText(
+                    "Operador: ---"
+            );
+
+            cardLayoutAcceso.show(
+                    panelAccesoContainer,
+                    "LOGIN"
+            );
+
+            cardLayoutRaiz.show(
+                    contenedorRaiz,
+                    CARD_ACCESO
+            );
+        });
+    }
+
+    /**
+     * Cambia a la pantalla de registro.
+     *
+     * Pre: ninguna.
+     * Post: muestra el formulario de registro.
+     */
+    @Override
+    public void mostrarRegistro() {
+
+        SwingUtilities.invokeLater(() -> {
+
+            cardLayoutAcceso.show(
+                    panelAccesoContainer,
+                    "REGISTRO"
+            );
+        });
+    }
+
+    /**
+     * Cambia a la pantalla de login.
+     *
+     * Pre: ninguna.
+     * Post: muestra el formulario de login.
+     */
+    @Override
+    public void mostrarLogin() {
+
+        SwingUtilities.invokeLater(() -> {
+
+            cardLayoutAcceso.show(
+                    panelAccesoContainer,
+                    "LOGIN"
+            );
         });
     }
 
     @Override
-    public void mostrarRegistro() {
-        SwingUtilities.invokeLater(() -> cardLayoutAcceso.show(panelAccesoContainer, "REGISTRO"));
+    public void onRegistroResultado(
+            boolean registrado,
+            String mensaje) {
     }
 
     @Override
-    public void mostrarLogin() {
-        SwingUtilities.invokeLater(() -> cardLayoutAcceso.show(panelAccesoContainer, "LOGIN"));
+    public void onErrorAutenticacion(
+            String mensaje) {
     }
-
-    @Override
-    public void onRegistroResultado(boolean registrado, String mensaje) {}
-
-    @Override
-    public void onErrorAutenticacion(String mensaje) {}
 }
