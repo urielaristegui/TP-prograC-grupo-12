@@ -156,7 +156,8 @@ public abstract class Mision {
 
 		Posicion origen = AC.posicionNave();
 
-		ruta = calcularRuta(origen, objetivo);
+		// Calcular la ruta utilizando el radar de largo alcance.
+		ruta = AC.planificarRutaConRadar(objetivo);
 
 		recorrido.add(origen);
 
@@ -207,51 +208,124 @@ public abstract class Mision {
 	// Fase 2: ejecutar
 	// ------------------------------------------------------------------
 
+
+	/**
+	 * Ejecuta la travesia de la mision.
+	 *
+	 * Pre:
+	 * - La mision fue preparada correctamente.
+	 * - Existe una nave operativa.
+	 *
+	 * Post:
+	 * - Aplica el consumo de despegue.
+	 * - Ejecuta los turnos de navegacion.
+	 * - Finaliza si la nave alcanza el objetivo,
+	 *   se destruye o falla la mision.
+	 * - Completa el enfriamiento del Warp incluso
+	 *   cuando el salto termina en el objetivo.
+	 * - Verifica los recursos requeridos en destino.
+	 */
 	protected void ejecutar() {
+
 		combustibleInicial = AC.getCombustible();
 		energiaInicial = AC.getEnergia();
 		desgasteInicial = AC.getDesgaste();
 		gemasInicial = AC.getGemas();
 
 		try {
-			AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
+
+			AC.ordenarConsumo(
+					getCombustibleRequerido(),
+					getEnergiaRequerida(),
+					getDesgasteGenerado()
+			);
+
 			registrar("despegue: consumo inicial aplicado");
 
 			int turno = 0;
-			while (!AC.naveDestruida() && !llegoAlDestino && motivoFallo.isEmpty()) {
+
+			while (!AC.naveDestruida()
+					&& !llegoAlDestino
+					&& motivoFallo.isEmpty()) {
+
 				turno++;
+
 				if (turno > LIMITE_TURNOS) {
-					motivoFallo = "se superó el límite de turnos sin llegar al destino";
+
+					motivoFallo =
+							"se supero el limite de turnos "
+									+ "sin llegar al destino";
+
 					break;
 				}
 
+				// Turno de la nave.
 				turnoDeLaNave();
 
-				// Si la nave fue destruida durante el turno,
-				// la mision termina inmediatamente.
-				if (AC.naveDestruida() || !motivoFallo.isEmpty()) {
+				if (AC.naveDestruida()
+						|| !motivoFallo.isEmpty()) {
+
 					break;
 				}
 
-				// Solo avanzar el tablero si la nave sigue operativa.
+				// Turno del tablero.
 				AC.turnoDelTablero();
 
 				pausar();
-
 			}
+
+			// =========================================
+			// NUEVO: ENFRIAMIENTO FINAL DEL WARP
+			// =========================================
+
+			// Si el ultimo Warp termino exactamente
+			// en el objetivo, queda pendiente procesar
+			// un turno de enfriamiento.
+			//
+			// ReglasNavegacion procesa ese enfriamiento
+			// antes de calcular cualquier otro movimiento.
+			//
+			// Si no hay enfriamiento pendiente y ya estamos
+			// en destino, esta llamada no mueve la nave
+			// ni consume combustible.
+
+			if (llegoAlDestino
+					&& motivoFallo.isEmpty()
+					&& !AC.naveDestruida()) {
+
+				AC.avanzarHacia(objetivo);
+			}
+
 		} catch (IllegalArgumentException e) {
-			// Nave rechazó una operación (recurso insuficiente, desgaste fuera de rango...)
-			motivoFallo = "operación rechazada por la nave: " + e.getMessage();
+
+			motivoFallo =
+					"operacion rechazada por la nave: "
+							+ e.getMessage();
 		}
+
+		// =========================================
+		// VERIFICACIONES FINALES
+		// =========================================
 
 		if (AC.naveDestruida()) {
+
 			if (motivoFallo.isEmpty()) {
-				motivoFallo = "la nave quedó destruida (desgaste 100, o energía/combustible en 0)";
+
+				motivoFallo =
+						"la nave quedo destruida "
+								+ "(desgaste 100, energia o combustible en 0)";
 			}
-		} else if (llegoAlDestino && motivoFallo.isEmpty() && !verificarEnDestino()) {
-			motivoFallo = "al llegar no conservaba los recursos que debía entregar";
+
+		} else if (llegoAlDestino
+				&& motivoFallo.isEmpty()
+				&& !verificarEnDestino()) {
+
+			motivoFallo =
+					"al llegar no conservaba los recursos "
+							+ "que debia entregar";
 		}
 	}
+
 
 	private void turnoDeLaNave() {
 		ElementoDelUniverso presente = AC.inspeccionarPosicion();

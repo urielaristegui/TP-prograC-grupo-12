@@ -4,10 +4,12 @@ import modelo.bitacora.Bitacora;
 import modelo.destinoytablero.Destino;
 import modelo.destinoytablero.Posicion;
 import modelo.destinoytablero.Tablero;
+import modelo.elementos.Asteroide;
 import modelo.elementos.ElementoDelUniverso;
 import modelo.nave.Nave;
 import modelo.sensores.ReglasNavegacion;
 
+import java.util.*;
 import java.util.function.Consumer;
 
 
@@ -310,6 +312,237 @@ public class AsistenteDeComandos {
 	public Posicion nuevoObjetivo() {
 		exigirTablero();
 		return tablero.obtenerObjetivo();
+	}
+
+
+	/**
+	 * Planifica una ruta inicial utilizando el radar de largo
+	 * alcance de 5x5.
+	 *
+	 * Pre:
+	 * - El tablero y las reglas de navegacion estan configurados.
+	 * - objetivo != null y pertenece al tablero.
+	 *
+	 * Post:
+	 * - Utiliza el radar de largo alcance.
+	 * - Calcula una ruta ortogonal evitando los asteroides
+	 *   detectados, siempre que exista un camino.
+	 * - Devuelve los pasos sin incluir el origen.
+	 * - No modifica posiciones, recursos ni el tablero.
+	 *
+	 * Las posiciones fuera del radar se consideran
+	 * transitables provisionalmente, ya que aun no
+	 * fueron observadas.
+	 *
+	 * @param objetivo coordenada de destino
+	 * @return ruta inicial de referencia
+	 */
+	public List<Posicion> planificarRutaConRadar(
+			Posicion objetivo) {
+
+		exigirTablero();
+		exigirReglas();
+
+		if (objetivo == null || !dentroDelTablero(objetivo)) {
+			throw new IllegalArgumentException(
+					"Objetivo fuera del tablero"
+			);
+		}
+
+		Posicion origen = posicionNave();
+
+		// ==========================================
+		// 1. ESCANEO DE LARGO ALCANCE
+		// ==========================================
+
+		ElementoDelUniverso[][] radar =
+				reglas.getSensores().escanearLargoAlcance();
+
+		int filas = tablero.getX();
+		int columnas = tablero.getY();
+
+		boolean[][] obstaculos =
+				new boolean[filas][columnas];
+
+		// ==========================================
+		// 2. IDENTIFICAR ASTEROIDES DETECTADOS
+		// ==========================================
+
+		// Traducir las coordenadas locales del radar
+		// a coordenadas absolutas del tablero.
+
+		for (int dx = -2; dx <= 2; dx++) {
+
+			for (int dy = -2; dy <= 2; dy++) {
+
+				int x = origen.getX() + dx;
+				int y = origen.getY() + dy;
+
+				if (x >= 0 && x < filas
+						&& y >= 0 && y < columnas
+						&& radar[dx + 2][dy + 2]
+						instanceof Asteroide
+						&& !(x == objetivo.getX()
+						&& y == objetivo.getY())) {
+
+					obstaculos[x][y] = true;
+				}
+			}
+		}
+
+		// ==========================================
+		// 3. BUSQUEDA DE RUTA (BFS)
+		// ==========================================
+
+		boolean[][] visitado =
+				new boolean[filas][columnas];
+
+		Posicion[][] anterior =
+				new Posicion[filas][columnas];
+
+		ArrayDeque<Posicion> pendientes =
+				new ArrayDeque<>();
+
+		// Movimientos ortogonales.
+		int[][] direcciones = {
+				{1, 0},
+				{-1, 0},
+				{0, 1},
+				{0, -1}
+		};
+
+		pendientes.add(origen);
+
+		visitado[origen.getX()][origen.getY()] = true;
+
+		while (!pendientes.isEmpty()) {
+
+			Posicion actual = pendientes.removeFirst();
+
+			if (actual.equals(objetivo)) {
+				break;
+			}
+
+			List<Posicion> vecinos = new ArrayList<>();
+
+			for (int[] dir : direcciones) {
+
+				Posicion vecino = new Posicion(
+						actual.getX() + dir[0],
+						actual.getY() + dir[1]
+				);
+
+				if (dentroDelTablero(vecino)
+						&& !visitado
+						[vecino.getX()][vecino.getY()]
+						&& !obstaculos
+						[vecino.getX()][vecino.getY()]) {
+
+					vecinos.add(vecino);
+				}
+			}
+
+			// Priorizar las posiciones mas cercanas
+			// al objetivo cuando hay alternativas.
+
+			vecinos.sort(
+					Comparator.comparingInt(p ->
+							Math.abs(
+									p.getX() - objetivo.getX()
+							)
+									+ Math.abs(
+									p.getY() - objetivo.getY()
+							)
+					)
+			);
+
+			for (Posicion vecino : vecinos) {
+
+				if (!visitado
+						[vecino.getX()][vecino.getY()]) {
+
+					visitado
+							[vecino.getX()][vecino.getY()] = true;
+
+					anterior
+							[vecino.getX()][vecino.getY()] = actual;
+
+					pendientes.addLast(vecino);
+				}
+			}
+		}
+
+		// ==========================================
+		// 4. SI NO EXISTE CAMINO NORMAL VISIBLE
+		// ==========================================
+
+		if (!visitado
+				[objetivo.getX()][objetivo.getY()]) {
+
+			// No cancelar la mision: la navegacion
+			// puede utilizar Warp o esperar que
+			// cambie la distribucion del tablero.
+
+			registrarEvento(
+					"Radar: sin camino normal visible; "
+							+ "ruta provisional directa"
+			);
+
+			List<Posicion> provisional =
+					new ArrayList<>();
+
+			int x = origen.getX();
+			int y = origen.getY();
+
+			while (x != objetivo.getX()
+					|| y != objetivo.getY()) {
+
+				if (Math.abs(objetivo.getX() - x)
+						>= Math.abs(objetivo.getY() - y)
+						&& x != objetivo.getX()) {
+
+					x += Integer.signum(
+							objetivo.getX() - x
+					);
+
+				} else {
+
+					y += Integer.signum(
+							objetivo.getY() - y
+					);
+				}
+
+				provisional.add(
+						new Posicion(x, y)
+				);
+			}
+
+			return provisional;
+		}
+
+		// ==========================================
+		// 5. RECONSTRUIR LA RUTA CALCULADA
+		// ==========================================
+
+		List<Posicion> ruta = new ArrayList<>();
+
+		for (Posicion p = objetivo;
+			 !p.equals(origen);
+			 p = anterior[p.getX()][p.getY()]) {
+
+			ruta.add(p);
+		}
+
+		Collections.reverse(ruta);
+
+		registrarEvento(
+				"Radar de largo alcance: ruta inicial "
+						+ "planificada con "
+						+ ruta.size()
+						+ " pasos; sectores lejanos aun desconocidos"
+		);
+
+		return ruta;
 	}
 
 	public ElementoDelUniverso inspeccionarPosicion() {

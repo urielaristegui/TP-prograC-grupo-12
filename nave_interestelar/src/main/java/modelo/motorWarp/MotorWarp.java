@@ -36,50 +36,58 @@ public class MotorWarp {
         estado = new Disponible(this);
     }
 
+
     /**
      * Solicita un salto normal.
      *
-     * Pre: nave != null y pertenece a este motor.
+     * Pre:
+     * - nave != null.
+     * - La nave pertenece a este motor.
      *
      * Post:
-     * - Si esta Disponible y hay combustible,
-     *   descuenta 2 unidades y devuelve true.
-     * - Si esta enfriando, completa el turno
-     *   sin permitir desplazamiento.
-     * - Si esta preparando Warp, no interrumpe
-     *   la preparacion.
+     * - Si esta Disponible, consume 2 de combustible
+     *   y autoriza un salto normal.
+     * - Si esta Enfriamento, procesa el turno pendiente,
+     *   genera 3 de desgaste y no permite desplazarse.
+     * - Si esta PreparandoSalto, no interrumpe el Warp.
      *
      * @param nave nave propietaria
-     * @return true si autoriza avanzar una casilla
+     * @return true si autoriza el salto normal
      */
     public boolean saltar(Nave nave) {
 
         validarNave(nave);
 
         if (estado instanceof Enfriamento) {
-            completarEnfriamiento();
+            completarEnfriamiento(nave);
             return false;
         }
 
         if (!(estado instanceof Disponible)) {
+
             Bitacora.getInstance().registrar(
                     "Motor Warp: salto normal no disponible "
                             + "durante la maniobra"
             );
+
             return false;
         }
 
         if (nave.getCombustible() < COMBUSTIBLE_NORMAL) {
+
             Bitacora.getInstance().registrar(
                     "ERROR: combustible insuficiente "
                             + "para salto normal"
             );
+
             return false;
         }
 
         nave.descontarCombustible(COMBUSTIBLE_NORMAL);
+
         return true;
     }
+
 
     /**
      * Solicita o continua un salto Warp.
@@ -190,29 +198,49 @@ public class MotorWarp {
         estado = nuevo;
     }
 
+
     /**
-     * Completa un turno de enfriamiento.
+     * Procesa el turno de enfriamiento del Motor Warp.
      *
-     * Pre: estado Enfriamento.
-     * Post: el motor vuelve a Disponible
-     * al completar el turno correspondiente.
+     * Pre:
+     * - nave != null.
+     * - El motor esta en estado Enfriamento.
+     *
+     * Post:
+     * - Avanza un turno de enfriamiento.
+     * - Genera exactamente 3 puntos de desgaste.
+     * - Devuelve el motor al estado Disponible.
+     * - No desplaza la nave.
+     *
+     * @param nave nave propietaria del motor
      */
-    private void completarEnfriamiento() {
+    private void completarEnfriamiento(Nave nave) {
 
         turnosEnfriamiento++;
 
         Bitacora.getInstance().registrar(
                 "Motor Warp: enfriamiento "
-                        + turnosEnfriamiento + "/1"
+                        + turnosEnfriamiento
+                        + "/1"
         );
 
         if (turnosEnfriamiento >= 1) {
 
+            // Aplicar desgaste durante el enfriamiento.
+            nave.generarDesgaste(DESGASTE_WARP);
+
+            // Transicion mediante State.
             estado.volverADisponible();
 
             turnosEnfriamiento = 0;
+
+            Bitacora.getInstance().registrar(
+                    "Motor Warp: enfriamiento completo "
+                            + "(+3 desgaste)"
+            );
         }
     }
+
 
     /**
      * Valida que la nave pueda utilizar el motor.
