@@ -346,11 +346,50 @@ public class AsistenteDeComandos {
 				&& p.getY() >= 0 && p.getY() < tablero.getY();
 	}
 
-	/** Turno del tablero: Destino mueve al azar los elementos. */
+
+	/**
+	 * Ejecuta el turno del entorno y sincroniza las
+	 * posiciones de las naves enemigas.
+	 *
+	 * Pre:
+	 * - Existe un tablero configurado.
+	 *
+	 * Post:
+	 * - Destino desplaza aleatoriamente los elementos.
+	 * - Cada nave enemiga conoce su posicion real.
+	 * - No modifica la posicion ni los recursos
+	 *   de la nave del jugador.
+	 * - No modifica las clases Tablero ni Destino.
+	 */
 	public void turnoDelTablero() {
+
 		exigirTablero();
+
+		// 1. Destino mueve los elementos del universo.
 		destino.turnoDestino();
+
+		// 2. Obtener el estado actualizado del tablero.
+		ElementoDelUniverso[][] grilla =
+				tablero.verTablero();
+
+		// 3. Sincronizar las posiciones de las naves enemigas.
+		for (int fila = 0; fila < grilla.length; fila++) {
+
+			for (int columna = 0;
+				 columna < grilla[fila].length;
+				 columna++) {
+
+				if (grilla[fila][columna] instanceof Nave enemiga
+						&& enemiga != nave) {
+
+					enemiga.setPosicion(
+							new Posicion(fila, columna)
+					);
+				}
+			}
+		}
 	}
+
 
 	// ---------------------------------------------------------------
 	// Encuentros y recompensas
