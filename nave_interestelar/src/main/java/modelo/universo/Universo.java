@@ -31,7 +31,7 @@ public class Universo {
     public static final int FILAS = 20;
     public static final int COLUMNAS = 20;
 
-    private final Nave nave;
+    private Nave nave;
     private final Tablero tablero;
     private final Destino destino;
     private Posicion objetivo;
@@ -375,4 +375,47 @@ public class Universo {
             }
         }
     }
+
+
+    /**
+     * Cambia la nave principal del universo.
+     *
+     * Pre:
+     * - nuevaNave != null.
+     * - La nave no esta destruida.
+     * - Posee energia y combustible positivos.
+     * - Su desgaste es menor a 100.
+     *
+     * Post:
+     * - La nueva nave pasa a ser la del jugador.
+     * - Se sincroniza con la posicion del tablero.
+     * - Se conservan todos los elementos del universo.
+     * - Se notifica a los observadores del tablero.
+     *
+     * @param nuevaNave nueva nave principal
+     * @throws IllegalArgumentException si la nave es invalida
+     */
+    public void cambiarNaveJugador(Nave nuevaNave) {
+
+        if (nuevaNave == null || nuevaNave.estaDestruida()
+                || nuevaNave.getEnergia() <= 0
+                || nuevaNave.getCombustible() <= 0
+                || nuevaNave.getDesgaste() >= 100) {
+
+            throw new IllegalArgumentException(
+                    "La nueva nave debe estar operativa"
+            );
+        }
+
+        nuevaNave.setPosicion(
+                tablero.getPosicionNave()
+        );
+
+        this.nave = nuevaNave;
+
+        tablero.moverNave(
+                nuevaNave.getPosicion()
+        );
+    }
+
 }

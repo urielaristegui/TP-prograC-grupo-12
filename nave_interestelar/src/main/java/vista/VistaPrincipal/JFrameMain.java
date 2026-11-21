@@ -28,6 +28,8 @@ import vista.Persistencia.AutenticacionObserver;
 import vista.Persistencia.JPanelLogin;
 import vista.VisorRecondito.JPanelVisorRecondito;
 import vista.Persistencia.JPanelRegistro;
+import Controlador.CreacionNaveController;
+import vista.Creacion.JPanelCreacionNave;
 
 public class JFrameMain extends JFrame implements AutenticacionObserver, NavegacionAccesoObserver {
 
@@ -124,13 +126,42 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
         // TabbedPane con todas las ventanas de desarrollo
         tabbedPanePrincipal = new JTabbedPane();
 
-        // Pestaña 1: Creación de Naves y Tripulación (Santi)
-        tabbedPanePrincipal.addTab("🛠️ Configuración & Creación", crearPanelPlaceholder("Sección de Creación de Nave y Asignación de Tripulación"));
 
-        // Pestaña 2: Tripulantes y Haberes (Jere)
-        TripulantesController tripulantesController = new TripulantesController();
-        JPanelTripulantes panelTripulantes = new JPanelTripulantes(tripulantesController);
-        tabbedPanePrincipal.addTab("👥 Tripulantes & Haberes", panelTripulantes);
+// CONTROLADOR COMPARTIDO DE TRIPULANTES
+
+        TripulantesController tripulantesController =
+                new TripulantesController();
+
+// CONTROLADOR DE CREACION DE NAVE
+
+        CreacionNaveController creacionController =
+                new CreacionNaveController(
+                        universo,
+                        tripulantesController
+                );
+
+// PESTANA 1 - CREACION DE NAVE
+
+        JPanelCreacionNave panelCreacion =
+                new JPanelCreacionNave(creacionController);
+
+        tabbedPanePrincipal.addTab(
+                "Configuracion & Creacion",
+                panelCreacion
+        );
+
+// PESTANA 2 - TRIPULANTES Y HABERES
+
+        JPanelTripulantes panelTripulantes =
+                new JPanelTripulantes(
+                        tripulantesController
+                );
+
+        tabbedPanePrincipal.addTab(
+                "Tripulantes & Haberes",
+                panelTripulantes
+        );
+
 
         // Pestaña 3: Tablero y Control de Nave (Santi / Uriel / Agustín)
         JPanel TableroControl = new JPanel(new BorderLayout(10, 0));
