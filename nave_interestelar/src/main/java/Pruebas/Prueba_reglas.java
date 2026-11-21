@@ -21,7 +21,7 @@ import modelo.Tripulacion.Identidad;
 import java.util.ArrayList;
 
 /**
- * Prueba ejecutable de integración para el subsistema de Navegación,
+ * Pruebas.PruebaPanelMisiones.Prueba ejecutable de integración para el subsistema de Navegación,
  * Sensores, AsistenteDeComandos y Bitácora.
  */
 public class Prueba_reglas {
@@ -65,13 +65,13 @@ public class Prueba_reglas {
         asistente.setReglasNavegacion(reglas);
 
         // 5. Escaneo inicial con tus Sensores
-        System.out.println("--- 1. Prueba de Escaneo de Entorno ---");
+        System.out.println("--- 1. Pruebas.PruebaPanelMisiones.Prueba de Escaneo de Entorno ---");
         sensores.escanearCortoAlcance();
         sensores.escanearLargoAlcance();
         System.out.println("✔ Escaneos de 3x3 y 5x5 ejecutados exitosamente.\n");
 
-        // 6. Prueba de avance progresivo a través del Asistente (delegando en ReglasNavegacion)
-        System.out.println("--- 2. Prueba de Navegación (Asistente -> ReglasNavegacion) ---");
+        // 6. Pruebas.PruebaPanelMisiones.Prueba de avance progresivo a través del Asistente (delegando en ReglasNavegacion)
+        System.out.println("--- 2. Pruebas.PruebaPanelMisiones.Prueba de Navegación (Asistente -> ReglasNavegacion) ---");
         Posicion destinoObjetivo = new Posicion(5, 8);
         int combustibleInicial = nave.getCombustible();
         int energiaInicial = nave.getEnergia();

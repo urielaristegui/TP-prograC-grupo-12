@@ -36,7 +36,7 @@ public class pruebaPanelConcurrencia {
             VisorReconditoController controlador = new VisorReconditoController(plataformaModelo, vistaPanel);
 
             // 5. Configurar el contenedor JFrame principal de la prueba
-            JFrame frame = new JFrame("Prueba Concurrencia — Visor Recóndito (Monitores & MVC)");
+            JFrame frame = new JFrame("Pruebas.PruebaPanelMisiones.Prueba Concurrencia — Visor Recóndito (Monitores & MVC)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setContentPane(vistaPanel);
             frame.pack();

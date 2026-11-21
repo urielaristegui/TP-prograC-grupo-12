@@ -20,7 +20,7 @@ import modelo.sensores.ReglasNavegacion;
 import modelo.sensores.Sensores;
 
 /**
- * Prueba manual de Parte 2: las tres misiones corriendo sobre el tablero real.
+ * Pruebas.PruebaPanelMisiones.Prueba manual de Parte 2: las tres misiones corriendo sobre el tablero real.
  */
 public final class PruebaMisiones {
 

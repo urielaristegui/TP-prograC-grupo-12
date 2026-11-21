@@ -15,7 +15,7 @@ import modelo.nave.TipoNave;
 import modelo.universo.Universo;
 
 /**
- * Prueba de integracion del universo dinamico.
+ * Pruebas.PruebaPanelMisiones.Prueba de integracion del universo dinamico.
  *
  * Comprueba la inicializacion del tablero,
  * los movimientos y las interacciones.
