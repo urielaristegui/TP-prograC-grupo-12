@@ -1,27 +1,45 @@
 @startuml
 skinparam classAttributeIconSize 0
-
-package "Double Dispatch (Encuentros entre Naves)" {
-    interface ElementoDelUniverso <<interface>> {
-        + interactuar(nave: Nave)
-    }
-
-    abstract class Nave implements ElementoDelUniverso {
-        + interactuar(naveJugador: Nave)
-        + enfrentar(rival: Nave): ResultadoCombate
-        # {abstract} recibirEncuentroDe(propia: NaveExploradora): ResultadoCombate
-        # {abstract} recibirEncuentroDe(propia: NaveCarguero): ResultadoCombate
-        # {abstract} recibirEncuentroDe(propia: NaveCombate): ResultadoCombate
-    }
-
-    class NaveExploradora extends Nave
-    class NaveCarguero extends Nave
-    class NaveCombate extends Nave
-
-    enum ResultadoCombate {
-        GANA
-        PIERDE
-        PACTO_DE_PAZ
-    }
+skinparam monochrome false
+skinparam style strictuml
+interface ElementoDelUniverso <<interface>> {
+    + interactuar(nave: Nave): void
 }
+
+enum ResultadoCombate <<enum>> {
+    GANA
+    PIERDE
+    PACTO_DE_PAZ
+}
+
+abstract class Nave <<abstract / Elemento>> implements ElementoDelUniverso {
+    + interactuar(naveJugador: Nave): void
+    + {abstract} enfrentar(rival: Nave): ResultadoCombate
+    # {abstract} recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+    # {abstract} recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+    # {abstract} recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
+}
+
+class NaveExploradora <<ConcreteElement>> extends Nave {
+    + enfrentar(rival: Nave): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
+}
+
+class NaveCarguero <<ConcreteElement>> extends Nave {
+    + enfrentar(rival: Nave): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
+}
+
+class NaveCombate <<ConcreteElement>> extends Nave {
+    + enfrentar(rival: Nave): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+    # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
+}
+
+Nave ..> ResultadoCombate : usa
 @enduml

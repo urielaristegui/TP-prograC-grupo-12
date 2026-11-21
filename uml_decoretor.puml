@@ -1,40 +1,46 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
 
-package "Patrón Decorator (Tripulación)" {
-    interface Haber <<interface>> {
-        + getSueldo(): double
-    }
-
-    abstract class Tripulante implements Haber {
-        # Identidad identidad
-        # double ant
-        + {abstract} getSueldo(): double
-    }
-
-    abstract class DecoratorPlaneta implements Haber {
-        # Tripulante tripulante
-        + DecoratorPlaneta(t: Tripulante)
-    }
-
-    class Marciano extends DecoratorPlaneta {
-        - double subsidio
-        + getSueldo(): double
-    }
-    class Terricola extends DecoratorPlaneta {
-        - double subsidio
-        + getSueldo(): double
-    }
-    class Vulcano extends DecoratorPlaneta {
-        - double subsidio
-        + getSueldo(): double
-    }
-
-    class Capitan extends Tripulante
-    class Teniente extends Tripulante
-    class Consejero extends Tripulante
-    class Alferez extends Tripulante
+interface Haber <<interface>> {
+    + getSueldo(): double
 }
 
-DecoratorPlaneta o-- Tripulante : envuelve
+abstract class Tripulante <<abstract / Componente>> implements Haber {
+    # identidad: Identidad
+    # ant: double
+    + {abstract} getSueldo(): double
+}
+
+abstract class DecoratorPlaneta <<abstract / Decorator>> implements Haber {
+    - haber: Haber
+    + getHaber(): Haber
+    + setHaber(haber: Haber): void
+}
+
+class Marciano <<ConcreteDecorator>> extends DecoratorPlaneta {
+    - subsidio: double
+    + Marciano(haber: Haber)
+    + getSueldo(): double
+}
+
+class Terricola <<ConcreteDecorator>> extends DecoratorPlaneta {
+    - subsidio: double
+    + Terricola(haber: Haber)
+    + getSueldo(): double
+}
+
+class Vulcano <<ConcreteDecorator>> extends DecoratorPlaneta {
+    - subsidio: double
+    + Vulcano(haber: Haber)
+    + getSueldo(): double
+}
+
+class Capitan <<ConcreteComponent>> extends Tripulante
+class Teniente <<ConcreteComponent>> extends Tripulante
+class Consejero <<ConcreteComponent>> extends Tripulante
+class Alferez <<ConcreteComponent>> extends Tripulante
+
+DecoratorPlaneta o--> "1" Haber : haber
 @enduml
