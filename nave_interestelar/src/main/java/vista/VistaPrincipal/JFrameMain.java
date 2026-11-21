@@ -19,6 +19,9 @@ import Controlador.MainController;
 import Controlador.TripulantesController;
 import modelo.UniversoAlterno.PlataformaDeCarga;
 import modelo.Persistencia.UsuarioDTO;
+import modelo.universo.Universo;
+import vista.JPanelTablero;
+import vista.PanelBitacoraYSensores;
 import vista.Persistencia.NavegacionAccesoObserver;
 import vista.Tripulantes.JPanelTripulantes;
 import vista.Persistencia.AutenticacionObserver;
@@ -45,7 +48,9 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
     private JTabbedPane tabbedPanePrincipal;
     private JLabel lblUsuarioHeader;
 
-    public JFrameMain(MainController mainController, AutenticacionController authController) {
+    private final Universo universo;
+
+    public JFrameMain(MainController mainController, AutenticacionController authController, Universo universo) {
         super("Software Embarcado — Nave Interestelar (Panel Principal)");
         if (mainController == null || authController == null) {
             throw new IllegalArgumentException("Los Controladores no pueden ser nulos.");
@@ -56,6 +61,8 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
         this.authController.agregarObservador(this);
         this.authController.agregarObservador(this.mainController);
         this.authController.setNavegacionObserver(this);
+
+        this.universo= universo;
 
         inicializarUI();
     }
@@ -126,7 +133,10 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
         tabbedPanePrincipal.addTab("👥 Tripulantes & Haberes", panelTripulantes);
 
         // Pestaña 3: Tablero y Control de Nave (Santi / Uriel / Agustín)
-        tabbedPanePrincipal.addTab("🚀 Control de Nave & Tablero", crearPanelPlaceholder("Sección de Control, Bitácora, Sensores y Tablero 20x20"));
+        JPanel TableroControl= new JPanel(new BorderLayout(10,0));
+        TableroControl.add(new JPanelTablero(universo));
+        TableroControl.add(new PanelBitacoraYSensores());
+        tabbedPanePrincipal.addTab("🚀 Control de Nave & Tablero", TableroControl);
 
         // Pestaña 4: Visor Recóndito - Concurrencia (Jere)
         PlataformaDeCarga plataformaModelo = new PlataformaDeCarga(5);
