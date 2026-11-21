@@ -133,10 +133,22 @@ public class JFrameMain extends JFrame implements AutenticacionObserver, Navegac
         tabbedPanePrincipal.addTab("👥 Tripulantes & Haberes", panelTripulantes);
 
         // Pestaña 3: Tablero y Control de Nave (Santi / Uriel / Agustín)
-        JPanel TableroControl= new JPanel(new BorderLayout(10,0));
-        TableroControl.add(new JPanelTablero(universo));
-        TableroControl.add(new PanelBitacoraYSensores());
-        tabbedPanePrincipal.addTab("🚀 Control de Nave & Tablero", TableroControl);
+        JPanel TableroControl = new JPanel(new BorderLayout(10, 0));
+
+        TableroControl.add(
+                new JPanelTablero(universo),
+                BorderLayout.CENTER
+        );
+
+        TableroControl.add(
+                new PanelBitacoraYSensores(),
+                BorderLayout.EAST
+        );
+
+        tabbedPanePrincipal.addTab(
+                "🚀 Control de Nave & Tablero",
+                TableroControl
+        );
 
         // Pestaña 4: Visor Recóndito - Concurrencia (Jere)
         PlataformaDeCarga plataformaModelo = new PlataformaDeCarga(5);
