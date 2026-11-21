@@ -388,49 +388,68 @@ public abstract class Nave implements ElementoDelUniverso {
         }
     }
 
+
     /**
-     * Solicita al motor preparar el salto.
+     * Solicita la preparacion de un Warp.
      *
-     * Pre: tripulacion valida y motor Disponible.
-     * Post: motor en PreparandoSalto.
-     *
-     * @throws IllegalStateException si no puede preparar el salto
+     * Pre: tripulacion valida.
+     * Post: inicia el primer turno de preparacion
+     * si el motor se encuentra disponible.
      */
     public void prepararSalto() {
+
         if (!tieneTripulacionValida()) {
             throw new IllegalStateException(
-                    "La nave no tiene una tripulacion valida"
+                    "La nave no tiene tripulacion valida"
             );
         }
 
-        motorWarp.prepararSalto();
+        motorWarp.saltarWarp(this);
     }
 
     /**
-     * Ejecuta el salto y finaliza el enfriamiento.
+     * Metodo de compatibilidad con P1 para completar
+     * el ciclo Warp.
      *
-     * Pre: motor en PreparandoSalto.
-     * Post: motor pasa por EnWarp y termina Disponible.
+     * En P2, la navegacion por turnos debe gestionarla
+     * ReglasNavegacion.
      *
-     * @throws IllegalStateException si el estado no permite saltar
+     * Pre: tripulacion valida y energia suficiente.
+     * Post: completa el ciclo Warp y el enfriamiento.
+     * No modifica directamente las coordenadas.
      */
     public void saltar() {
-        try {
-            motorWarp.entrarEnWarp();
-            motorWarp.iniciarEnfriamiento();
 
-            Thread.sleep(10000);
-
-            motorWarp.volverAlDisponible();
-
-        } catch (InterruptedException e) {
-            Bitacora.getInstance().registrar(
-                    "Alerta: El ciclo de enfriamiento fue interrumpido."
+        if (!tieneTripulacionValida()) {
+            throw new IllegalStateException(
+                    "La nave no tiene tripulacion valida"
             );
-
-            motorWarp.volverAlDisponible();
         }
+
+        if (getEnergia() < 5) {
+            throw new IllegalStateException(
+                    "Energia insuficiente para Warp"
+            );
+        }
+
+        boolean ejecutado = false;
+
+        for (int intento = 0;
+             intento < 3 && !ejecutado;
+             intento++) {
+
+            ejecutado = motorWarp.saltarWarp(this);
+        }
+
+        if (!ejecutado) {
+            throw new IllegalStateException(
+                    "No se pudo completar el Warp"
+            );
+        }
+
+        motorWarp.saltar(this);
     }
+
 
     // =====================================================
     // NUEVO - DESTRUCCION DE NAVE

@@ -1,212 +1,248 @@
+
 package modelo.motorWarp;
 
+import modelo.bitacora.Bitacora;
+import modelo.nave.Nave;
+
 /**
- * clase que representa el motor warp de la nave (contexto del patron state).<br>
- * administra el comportamiento y las transiciones del estado del motor.<br>
+ * Contexto del patron State para el motor de la nave.
  *
- * <b>invariante:</b> state != null.
+ * Las unicas operaciones publicas de vuelo son:
+ * - saltar(): salto normal.
+ * - saltarWarp(): salto Warp.
+ *
+ * Cada llamada representa como maximo un turno.
+ *
+ * Invariantes:
+ * - estado != null.
+ * - Los contadores de turnos son no negativos.
  */
 public class MotorWarp {
 
-    private State state;
+    private static final int COMBUSTIBLE_NORMAL = 2;
+    private static final int ENERGIA_WARP = 5;
+    private static final int DESGASTE_WARP = 3;
+    private static final int TURNOS_PREPARACION = 2;
+
+    private State estado;
     private int turnosPreparacion;
     private int turnosEnfriamiento;
 
     /**
-     * constructor de la clase motorWarp.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> inicializa el motor en estado disponible con los contadores en cero.
+     * Pre: ninguna.
+     * Post: inicializa el motor Disponible.
      */
     public MotorWarp() {
-        this.turnosPreparacion = 0;
-        this.turnosEnfriamiento = 0;
-        setState(new Disponible(this));
+        estado = new Disponible(this);
     }
 
     /**
-     * cambia el estado del motorWarp.<br>
-     * <b>pre:</b> state != null.<br>
-     * <b>post:</b> se actualiza el atributo state.<br>
+     * Solicita un salto normal.
      *
-     * @param state nuevo estado a asignar.
-     * @throws IllegalArgumentException si el estado recibido es null.
+     * Pre: nave != null y pertenece a este motor.
+     *
+     * Post:
+     * - Si esta Disponible y hay combustible,
+     *   descuenta 2 unidades y devuelve true.
+     * - Si esta enfriando, completa el turno
+     *   sin permitir desplazamiento.
+     * - Si esta preparando Warp, no interrumpe
+     *   la preparacion.
+     *
+     * @param nave nave propietaria
+     * @return true si autoriza avanzar una casilla
      */
-    public void setState(State state) {
-        if (state == null) {
-            throw new IllegalArgumentException("el estado no puede ser null");
+    public boolean saltar(Nave nave) {
+
+        validarNave(nave);
+
+        if (estado instanceof Enfriamento) {
+            completarEnfriamiento();
+            return false;
         }
-        this.state = state;
+
+        if (!(estado instanceof Disponible)) {
+            Bitacora.getInstance().registrar(
+                    "Motor Warp: salto normal no disponible "
+                            + "durante la maniobra"
+            );
+            return false;
+        }
+
+        if (nave.getCombustible() < COMBUSTIBLE_NORMAL) {
+            Bitacora.getInstance().registrar(
+                    "ERROR: combustible insuficiente "
+                            + "para salto normal"
+            );
+            return false;
+        }
+
+        nave.descontarCombustible(COMBUSTIBLE_NORMAL);
+        return true;
     }
 
     /**
-     * devuelve el estado actual del motorWarp.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna la referencia al estado actual.<br>
+     * Solicita o continua un salto Warp.
      *
-     * @return estado actual del motor.
-     */
-    public State getState() {
-        return state;
-    }
-
-    /**
-     * llama al metodo prepararSalto del estado actual.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> delega la accion al estado actual.
-     */
-    public void prepararSalto() {
-        this.state.prepararSalto();
-    }
-
-    /**
-     * llama al metodo entrarEnWarp del estado actual.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> delega la accion al estado actual.
-     */
-    public void entrarEnWarp() {
-        this.state.entrarEnWarp();
-    }
-
-    /**
-     * llama al metodo iniciarEnfriamiento del estado actual.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> delega la accion al estado actual.
-     */
-    public void iniciarEnfriamiento() {
-        this.state.iniciarEnfriamiento();
-    }
-
-    /**
-     * llama al metodo volverAlDisponible del estado actual.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> delega la accion al estado actual.
-     */
-    public void volverAlDisponible() {
-        this.state.volverADisponible();
-    }
-
-    /**
-     * devuelve la cantidad de turnos de preparacion acumulados.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna el entero correspondiente a los turnos.<br>
+     * Pre:
+     * - nave != null.
+     * - La nave pertenece a este motor.
+     * - La navegacion valida previamente
+     *   la casilla de aterrizaje.
      *
-     * @return turnos de preparacion acumulados.
-     */
-    public int getTurnosPreparacion() {
-        return turnosPreparacion;
-    }
-
-    /**
-     * establece la cantidad de turnos de preparacion.<br>
-     * <b>pre:</b> turnosPreparacion >= 0.<br>
-     * <b>post:</b> actualiza el contador de turnos.<br>
+     * Post:
+     * - Exige dos turnos de preparacion.
+     * - Sin energia suficiente permanece preparando.
+     * - Cuando esta listo, consume 5 de energia,
+     *   genera 3 de desgaste y pasa a enfriamiento.
+     * - Autoriza avanzar dos casillas al devolver true.
      *
-     * @param turnosPreparacion cantidad de turnos.
+     * @param nave nave propietaria
+     * @return true solamente al ejecutar el Warp
      */
-    public void setTurnosPreparacion(int turnosPreparacion) {
-        this.turnosPreparacion = turnosPreparacion;
+    public boolean saltarWarp(Nave nave) {
+
+        validarNave(nave);
+
+        if (estado instanceof Enfriamento) {
+            completarEnfriamiento();
+            return false;
+        }
+
+        if (estado instanceof Disponible) {
+            turnosPreparacion = 0;
+            estado.prepararSalto();
+        }
+
+        if (!(estado instanceof PreparandoSalto)) {
+            return false;
+        }
+
+        if (nave.getEnergia() < ENERGIA_WARP) {
+
+            if (turnosPreparacion >= TURNOS_PREPARACION) {
+                // Se aborta el intento y vuelve a empezar
+                // la preparacion, sin salir de ese estado.
+                turnosPreparacion = 0;
+            }
+
+            Bitacora.getInstance().registrar(
+                    "Motor Warp: esperando energia "
+                            + "durante la preparacion"
+            );
+
+            return false;
+        }
+
+        if (turnosPreparacion < TURNOS_PREPARACION) {
+
+            turnosPreparacion++;
+
+            Bitacora.getInstance().registrar(
+                    "Motor Warp: preparacion "
+                            + turnosPreparacion
+                            + "/"
+                            + TURNOS_PREPARACION
+            );
+
+            return false;
+        }
+
+        // Transiciones delegadas a State.
+        estado.entrarEnWarp();
+
+        nave.descontarEnergia(ENERGIA_WARP);
+
+        estado.iniciarEnfriamiento();
+
+        nave.generarDesgaste(DESGASTE_WARP);
+
+        turnosPreparacion = 0;
+        turnosEnfriamiento = 0;
+
+        Bitacora.getInstance().registrar(
+                "Motor Warp: salto ejecutado "
+                        + "(-5 energia, +3 desgaste)"
+        );
+
+        return true;
     }
 
     /**
-     * incrementa en uno los turnos de preparacion acumulados.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> suma 1 al contador de preparacion.
-     */
-    public void incrementarTurnoPreparacion() {
-        this.turnosPreparacion++;
-    }
-
-    /**
-     * reinicia a cero el contador de turnos de preparacion.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> asigna 0 a turnosPreparacion.
-     */
-    public void resetearTurnosPreparacion() {
-        this.turnosPreparacion = 0;
-    }
-
-    /**
-     * devuelve la cantidad de turnos de enfriamiento acumulados.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna el entero correspondiente.<br>
+     * Modifica el estado desde las clases State.
      *
-     * @return turnos de enfriamiento.
-     */
-    public int getTurnosEnfriamiento() {
-        return turnosEnfriamiento;
-    }
-
-    /**
-     * establece los turnos de enfriamiento acumulados.<br>
-     * <b>pre:</b> turnosEnfriamiento >= 0.<br>
-     * <b>post:</b> actualiza el valor del contador.<br>
+     * Visibilidad de paquete: no se expone
+     * a los controladores ni a la navegacion.
      *
-     * @param turnosEnfriamiento cantidad de turnos.
-     */
-    public void setTurnosEnfriamiento(int turnosEnfriamiento) {
-        this.turnosEnfriamiento = turnosEnfriamiento;
-    }
-
-    /**
-     * reinicia a cero el contador de turnos de enfriamiento.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> asigna 0 a turnosEnfriamiento.
-     */
-    public void resetearTurnosEnfriamiento() {
-        this.turnosEnfriamiento = 0;
-    }
-
-    /**
-     * verifica si el motor se encuentra en estado disponible.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna true si el estado actual es Disponible.<br>
+     * Pre: nuevo != null.
+     * Post: reemplaza el estado actual.
      *
-     * @return true si esta disponible.
+     * @param nuevo nuevo estado
      */
-    public boolean estaDisponible() {
-        return state instanceof Disponible;
+    void setState(State nuevo) {
+
+        if (nuevo == null) {
+            throw new IllegalArgumentException(
+                    "El estado no puede ser null"
+            );
+        }
+
+        estado = nuevo;
     }
 
     /**
-     * verifica si el motor se encuentra en fase de preparacion.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna true si el estado actual es PreparandoSalto.<br>
+     * Completa un turno de enfriamiento.
      *
-     * @return true si esta en preparacion.
+     * Pre: estado Enfriamento.
+     * Post: el motor vuelve a Disponible
+     * al completar el turno correspondiente.
      */
-    public boolean estaPreparando() {
-        return state instanceof PreparandoSalto;
+    private void completarEnfriamiento() {
+
+        turnosEnfriamiento++;
+
+        Bitacora.getInstance().registrar(
+                "Motor Warp: enfriamiento "
+                        + turnosEnfriamiento + "/1"
+        );
+
+        if (turnosEnfriamiento >= 1) {
+
+            estado.volverADisponible();
+
+            turnosEnfriamiento = 0;
+        }
     }
 
     /**
-     * verifica si el motor esta en fase de enfriamiento.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna true si el estado actual es Enfriamiento.<br>
+     * Valida que la nave pueda utilizar el motor.
      *
-     * @return true si esta en enfriamiento.
-     */
-    public boolean estaEnEnfriamiento() {
-        return state instanceof Enfriamento;
-    }
-
-    /**
-     * consulta si se completaron los dos turnos de preparacion requeridos.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> retorna true si el contador de turnos de preparacion es mayor o igual a 2.<br>
+     * Pre: ninguna.
+     * Post: no modifica el estado.
      *
-     * @return true si finalizo la preparacion.
+     * @param nave nave a validar
      */
-    public boolean estaListoParaSaltar() {
-        return turnosPreparacion >= 2;
-    }
+    private void validarNave(Nave nave) {
 
-    /**
-     * incrementa el contador de turnos de preparacion del salto.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> se suma 1 al contador de preparacion.<br>
-     */
-    public void avanzarTurnoPreparacion() {
-        this.turnosPreparacion++;
-    }
+        if (nave == null) {
+            throw new IllegalArgumentException(
+                    "La nave no puede ser null"
+            );
+        }
 
+        if (nave.estaDestruida()) {
+            throw new IllegalStateException(
+                    "No puede utilizarse el motor "
+                            + "de una nave destruida"
+            );
+        }
+
+        if (nave.getMotorWarp() != null
+                && nave.getMotorWarp() != this) {
+
+            throw new IllegalArgumentException(
+                    "El motor no pertenece a la nave indicada"
+            );
+        }
+    }
 }

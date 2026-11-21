@@ -3,51 +3,46 @@ package modelo.sensores;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 import modelo.bitacora.Bitacora;
 import modelo.destinoytablero.Posicion;
 import modelo.destinoytablero.Tablero;
 import modelo.elementos.Asteroide;
 import modelo.elementos.ElementoDelUniverso;
-import modelo.motorWarp.MotorWarp;
 import modelo.nave.Nave;
 
 /**
- * Aplica las reglas de navegacion ortogonal mediante los sensores.
- * Un obstaculo (Asteroide) puede desencadenar un salto Warp
- * de dos casillas.
+ * Decide el tipo y la direccion de cada movimiento.
+ *
+ * MotorWarp administra estados, turnos y recursos.
+ * ReglasNavegacion administra las coordenadas.
+ * AsistenteDeComandos sincroniza Nave con Tablero.
  *
  * Invariantes:
  * - sensores != null.
- * - Cada nave en preparacion conserva la direccion de su Warp.
- * - Cada invocacion de evaluarYEjecutarPaso representa
- *   un turno de la nave.
- *
- * Esta clase no modifica directamente el tablero:
- * AsistenteDeComandos sincroniza el movimiento
- * de Nave con Tablero.
+ * - Los Warp iniciados conservan su direccion.
  */
 public class ReglasNavegacion {
-
-    private static final int COSTO_SALTO_NORMAL = 2;
-    private static final int COSTO_ENERGIA_WARP = 5;
-    private static final int DESGASTE_WARP = 3;
-    private static final int TURNOS_PREPARACION = 2;
-    private static final int TURNOS_ENFRIAMIENTO = 1;
 
     private final Sensores sensores;
 
     private final Map<Nave, Posicion> direccionesWarp =
             new IdentityHashMap<>();
 
+    private final Set<Nave> enfriamientosPendientes =
+            Collections.newSetFromMap(
+                    new IdentityHashMap<>()
+            );
+
     /**
      * Construye las reglas de navegacion.
      *
      * Pre: sensores != null.
-     * Post: conserva una referencia a los sensores.
+     * Post: conserva la referencia a los sensores.
      *
      * @param sensores sensores del universo
-     * @throws IllegalArgumentException si sensores es null
      */
     public ReglasNavegacion(Sensores sensores) {
 
@@ -61,34 +56,31 @@ public class ReglasNavegacion {
     }
 
     /**
-     * Procesa un turno de navegacion hacia el objetivo.
+     * Ejecuta un turno de navegacion.
      *
      * Pre:
-     * - nave y destino no son null.
-     * - nave.getPosicion() != null.
-     * - La nave y el destino estan dentro del tablero.
-     * - Nave y Tablero tienen la misma posicion.
+     * - Nave y destino no nulos.
+     * - Posiciones dentro del tablero.
+     * - Nave y Tablero sincronizados.
      *
      * Post:
-     * - Si el camino esta libre, puede avanzar una casilla.
-     * - Si hay un asteroide, intenta preparar el Warp.
-     * - El Warp avanza dos casillas tras la preparacion.
-     * - Durante el enfriamiento no se desplaza.
-     * - Nunca mueve la nave fuera del tablero.
+     * - Como maximo se realiza un movimiento.
+     * - El motor gestiona sus propios estados.
+     * - No modifica directamente el Tablero.
      *
-     * @param nave nave controlada
-     * @param destino coordenada objetivo
-     * @throws IllegalArgumentException si los argumentos son invalidos
-     * @throws IllegalStateException si la nave no puede navegar
+     * @param nave nave que se desplaza
+     * @param destino posicion objetivo
      */
     public void evaluarYEjecutarPaso(
-            Nave nave, Posicion destino) {
+            Nave nave,
+            Posicion destino) {
 
-        if (nave == null || destino == null
+        if (nave == null
+                || destino == null
                 || nave.getPosicion() == null) {
 
             throw new IllegalArgumentException(
-                    "Nave, posicion actual y destino son obligatorios"
+                    "La nave y el destino deben tener posicion"
             );
         }
 
@@ -98,7 +90,7 @@ public class ReglasNavegacion {
                 || !estaDentro(destino)) {
 
             throw new IllegalArgumentException(
-                    "La nave y el destino deben estar dentro del tablero"
+                    "La nave o el destino estan fuera del tablero"
             );
         }
 
@@ -106,160 +98,164 @@ public class ReglasNavegacion {
                 nave.getPosicion())) {
 
             throw new IllegalStateException(
-                    "La posicion de Nave no coincide con Tablero"
+                    "Nave y Tablero tienen posiciones diferentes"
             );
         }
 
         if (nave.estaDestruida()) {
             throw new IllegalStateException(
-                    "No se puede mover una nave destruida"
+                    "No puede navegar una nave destruida"
             );
         }
 
-        MotorWarp motor = nave.getMotorWarp();
+        // ==========================================
+        // ENFRIAMIENTO
+        // ==========================================
 
-        // El enfriamiento tiene prioridad.
-        if (motor.estaEnEnfriamiento()) {
-            avanzarEnfriamiento(motor);
+        // Completar un turno de enfriamiento.
+        if (enfriamientosPendientes.remove(nave)) {
+
+            nave.getMotorWarp().saltar(nave);
+
             return;
         }
 
-        // Si el Warp esta preparando, conserva su direccion.
-        if (motor.estaPreparando()) {
+        // ==========================================
+        // WARP EN PREPARACION
+        // ==========================================
 
-            Posicion direccion = direccionesWarp.get(nave);
+        Posicion direccionPendiente =
+                direccionesWarp.get(nave);
 
-            if (direccion == null) {
-                throw new IllegalStateException(
-                        "El motor prepara un Warp sin direccion registrada"
-                );
-            }
+        if (direccionPendiente != null) {
 
             continuarWarp(
                     nave,
-                    direccion.getX(),
-                    direccion.getY(),
-                    destino
+                    destino,
+                    direccionPendiente
             );
 
             return;
         }
+
+        // ==========================================
+        // CALCULO DE DIRECCION
+        // ==========================================
 
         Posicion actual = nave.getPosicion();
 
-        int diferenciaX =
+        int distanciaX =
                 destino.getX() - actual.getX();
 
-        int diferenciaY =
+        int distanciaY =
                 destino.getY() - actual.getY();
 
-        if (diferenciaX == 0 && diferenciaY == 0) {
-
-            Bitacora.getInstance().registrar(
-                    "Navegacion: la nave ya esta en el objetivo"
-            );
-
+        if (distanciaX == 0 && distanciaY == 0) {
             return;
         }
 
-        // Elegir primero el eje con mayor distancia.
-        int deltaX = 0;
-        int deltaY = 0;
+        // Priorizar el eje de mayor distancia.
+        int dx = 0;
+        int dy = 0;
 
-        if (Math.abs(diferenciaX) >= Math.abs(diferenciaY)
-                && diferenciaX != 0) {
+        if (Math.abs(distanciaX) >= Math.abs(distanciaY)
+                && distanciaX != 0) {
 
-            deltaX = Integer.signum(diferenciaX);
+            dx = Integer.signum(distanciaX);
 
         } else {
 
-            deltaY = Integer.signum(diferenciaY);
+            dy = Integer.signum(distanciaY);
         }
 
-        boolean atendido = intentarPasoOrtogonal(
-                nave, destino, deltaX, deltaY
-        );
+        // Intentar la direccion principal.
+        if (!intentarDireccion(
+                nave, destino, dx, dy)
+                && distanciaX != 0
+                && distanciaY != 0) {
 
-        // Si la primera direccion esta bloqueada,
-        // intentar avanzar por el otro eje.
-        if (!atendido
-                && diferenciaX != 0
-                && diferenciaY != 0) {
+            // Si esta bloqueada, intentar el otro eje.
+            int otroDx = dx == 0
+                    ? Integer.signum(distanciaX)
+                    : 0;
 
-            int alternativoX =
-                    deltaX != 0
-                            ? 0
-                            : Integer.signum(diferenciaX);
+            int otroDy = dy == 0
+                    ? Integer.signum(distanciaY)
+                    : 0;
 
-            int alternativoY =
-                    deltaY != 0
-                            ? 0
-                            : Integer.signum(diferenciaY);
-
-            Bitacora.getInstance().registrar(
-                    "Navegacion: intentando direccion alternativa"
-            );
-
-            intentarPasoOrtogonal(
+            intentarDireccion(
                     nave,
                     destino,
-                    alternativoX,
-                    alternativoY
+                    otroDx,
+                    otroDy
             );
         }
     }
 
     /**
-     * Intenta resolver un movimiento ortogonal.
+     * Intenta avanzar en una direccion ortogonal.
      *
      * Pre:
-     * - deltaX y deltaY definen un paso ortogonal.
-     * - La nave esta operativa.
+     * - dx y dy representan un paso ortogonal.
+     * - La nave se encuentra operativa.
      *
      * Post:
-     * - Si el camino esta libre, realiza un salto normal.
-     * - Si hay asteroide, intenta iniciar el Warp.
-     * - Si no puede avanzar, no cambia la posicion.
+     * - Ante un asteroide intenta Warp.
+     * - En otro caso intenta salto normal.
+     * - Si no es posible avanzar, conserva posicion.
      *
-     * @return true si se movio o inicio preparacion Warp
+     * @param nave nave a desplazar
+     * @param destino posicion objetivo
+     * @param dx desplazamiento horizontal
+     * @param dy desplazamiento vertical
+     * @return true si se atendio la direccion
      */
-    private boolean intentarPasoOrtogonal(
+    private boolean intentarDireccion(
             Nave nave,
             Posicion destino,
-            int deltaX,
-            int deltaY) {
+            int dx,
+            int dy) {
 
         Posicion actual = nave.getPosicion();
 
-        Posicion paso1 = nuevaPosicion(
-                actual, deltaX, deltaY
+        Posicion paso1 = desplazar(
+                actual,
+                dx,
+                dy
         );
 
         if (!estaDentro(paso1)) {
             return false;
         }
 
+        // ==========================================
+        // RADAR DE CORTO ALCANCE
+        // ==========================================
+
         ElementoDelUniverso[][] corto =
                 sensores.escanearCortoAlcance();
 
-        ElementoDelUniverso elemento =
-                corto[deltaX + 1][deltaY + 1];
+        // Si no hay asteroide, salto normal.
+        if (!(corto[1 + dx][1 + dy]
+                instanceof Asteroide)) {
 
-        // Otros elementos no bloquean el movimiento:
-        // se debe poder llegar a ellos para interactuar.
-        if (!(elemento instanceof Asteroide)) {
-            return realizarSaltoNormal(nave, paso1);
+            if (nave.getMotorWarp().saltar(nave)) {
+
+                nave.setPosicion(paso1);
+            }
+
+            return true;
         }
 
-        Bitacora.getInstance().registrar(
-                "Navegacion: asteroide detectado en ("
-                        + paso1.getX() + ","
-                        + paso1.getY() + ")"
-        );
+        // ==========================================
+        // ASTEROIDE DETECTADO
+        // ==========================================
 
-        // Comprobar que sea posible avanzar dos casillas.
-        if (!puedeLlegarDosCasillas(
-                actual, destino, deltaX, deltaY)) {
+        if (!puedeSaltarDos(
+                actual,
+                destino,
+                dx,
+                dy)) {
 
             Bitacora.getInstance().registrar(
                     "Navegacion: Warp no viable por limites "
@@ -269,259 +265,167 @@ public class ReglasNavegacion {
             return false;
         }
 
-        // SEGUNDA CASILLA CORREGIDA
+        // ==========================================
+        // RADAR DE LARGO ALCANCE
+        // ==========================================
+
         ElementoDelUniverso[][] largo =
                 sensores.escanearLargoAlcance();
 
-        if (largo[2 + 2 * deltaX][2 + 2 * deltaY] != null) {
+        // El aterrizaje esta exactamente
+        // a DOS casillas de distancia.
+        if (largo[2 + 2 * dx][2 + 2 * dy] != null) {
 
             Bitacora.getInstance().registrar(
-                    "Navegacion: destino del Warp ocupado"
+                    "Navegacion: la casilla de aterrizaje "
+                            + "esta ocupada"
             );
 
             return false;
         }
 
-        MotorWarp motor = nave.getMotorWarp();
+        // ==========================================
+        // INICIAR MANIOBRA WARP
+        // ==========================================
 
-        motor.resetearTurnosPreparacion();
-        motor.prepararSalto();
+        Posicion direccion =
+                new Posicion(dx, dy);
 
-        // Guardar la direccion para mantenerla
-        // durante los turnos de preparacion.
         direccionesWarp.put(
                 nave,
-                new Posicion(deltaX, deltaY)
+                direccion
         );
 
-        // Primer turno de preparacion.
-        if (nave.getEnergia() >= COSTO_ENERGIA_WARP) {
-            motor.avanzarTurnoPreparacion();
-        }
-
-        Bitacora.getInstance().registrar(
-                "Navegacion: Warp en preparacion (turno "
-                        + motor.getTurnosPreparacion()
-                        + "/" + TURNOS_PREPARACION + ")"
+        continuarWarp(
+                nave,
+                destino,
+                direccion
         );
 
         return true;
     }
 
     /**
-     * Realiza un salto normal.
+     * Continua un Warp pendiente.
      *
      * Pre:
-     * - La posicion de destino esta dentro del tablero.
-     * - La nave esta operativa.
+     * - Existe una direccion de Warp registrada.
+     * - Nave y destino son validos.
      *
      * Post:
-     * - Si tiene combustible, avanza una casilla
-     *   y consume 2 unidades.
-     * - Si no tiene combustible, no se mueve.
-     *
-     * @param nave nave a mover
-     * @param nueva nueva posicion
-     * @return true si realizo el salto
-     */
-    private boolean realizarSaltoNormal(
-            Nave nave, Posicion nueva) {
-
-        if (nave.getCombustible() < COSTO_SALTO_NORMAL) {
-
-            Bitacora.getInstance().registrar(
-                    "ERROR: combustible insuficiente para salto normal"
-            );
-
-            return false;
-        }
-
-        nave.descontarCombustible(COSTO_SALTO_NORMAL);
-
-        nave.setPosicion(nueva);
-
-        Bitacora.getInstance().registrar(
-                "Navegacion: salto normal a ("
-                        + nueva.getX() + ","
-                        + nueva.getY() + ")"
-        );
-
-        return true;
-    }
-
-    /**
-     * Continua una maniobra Warp ya iniciada.
-     *
-     * Pre:
-     * - El motor esta en PreparandoSalto.
-     * - La direccion fue almacenada previamente.
-     *
-     * Post:
-     * - Completa la preparacion requerida.
-     * - Si hay energia y aterrizaje disponible,
-     *   avanza dos casillas.
-     * - Consume 5 de energia.
-     * - Genera 3 de desgaste.
-     * - Inicia el estado de enfriamiento.
+     * - Mantiene la direccion durante la preparacion.
+     * - Solicita al MotorWarp avanzar su ciclo.
+     * - Si el motor autoriza, mueve dos casillas.
+     * - Registra un turno de enfriamiento pendiente.
      *
      * @param nave nave que realiza el Warp
-     * @param deltaX componente horizontal
-     * @param deltaY componente vertical
-     * @param destino objetivo de navegacion
+     * @param destino coordenada objetivo
+     * @param direccion direccion del salto
      */
     private void continuarWarp(
             Nave nave,
-            int deltaX,
-            int deltaY,
-            Posicion destino) {
-
-        MotorWarp motor = nave.getMotorWarp();
-
-        if (nave.getEnergia() < COSTO_ENERGIA_WARP) {
-
-            Bitacora.getInstance().registrar(
-                    "Navegacion: faltan 5 de energia; "
-                            + "Warp sigue en preparacion"
-            );
-
-            return;
-        }
-
-        // Completar los turnos de preparacion.
-        if (motor.getTurnosPreparacion()
-                < TURNOS_PREPARACION) {
-
-            motor.avanzarTurnoPreparacion();
-
-            Bitacora.getInstance().registrar(
-                    "Navegacion: preparacion Warp (turno "
-                            + motor.getTurnosPreparacion()
-                            + "/" + TURNOS_PREPARACION + ")"
-            );
-
-            return;
-        }
+            Posicion destino,
+            Posicion direccion) {
 
         Posicion actual = nave.getPosicion();
 
-        if (!puedeLlegarDosCasillas(
-                actual, destino, deltaX, deltaY)) {
+        int dx = direccion.getX();
+        int dy = direccion.getY();
+
+        // ==========================================
+        // VERIFICAR LIMITES
+        // ==========================================
+
+        if (!puedeSaltarDos(
+                actual,
+                destino,
+                dx,
+                dy)) {
 
             Bitacora.getInstance().registrar(
-                    "Navegacion: Warp preparado; "
-                            + "aterrizaje fuera de ruta o limites"
+                    "Navegacion: Warp pendiente, "
+                            + "aterrizaje fuera de la ruta"
             );
 
             return;
         }
 
-        // Volver a revisar el aterrizaje.
+        // ==========================================
+        // VERIFICAR CASILLA DE ATERRIZAJE
+        // ==========================================
+
         ElementoDelUniverso[][] largo =
                 sensores.escanearLargoAlcance();
 
-        if (largo[2 + 2 * deltaX][2 + 2 * deltaY] != null) {
+        if (largo[2 + 2 * dx][2 + 2 * dy] != null) {
 
             Bitacora.getInstance().registrar(
-                    "Navegacion: Warp preparado; "
-                            + "esperando que se libere el aterrizaje"
+                    "Navegacion: Warp pendiente, "
+                            + "aterrizaje ocupado"
             );
 
             return;
         }
 
-        // Comprobar recursos justo antes del salto.
-        nave.descontarEnergia(COSTO_ENERGIA_WARP);
+        // ==========================================
+        // SOLICITAR SALTO AL MOTOR
+        // ==========================================
 
-        motor.entrarEnWarp();
+        // MotorWarp administra internamente:
+        // - Preparacion de 2 turnos.
+        // - Consumo de 5 de energia.
+        // - Generacion de 3 de desgaste.
+        // - Transiciones del patron State.
+        if (nave.getMotorWarp().saltarWarp(nave)) {
 
-        Posicion nueva = nuevaPosicion(
-                actual,
-                2 * deltaX,
-                2 * deltaY
-        );
+            nave.setPosicion(
+                    desplazar(
+                            actual,
+                            2 * dx,
+                            2 * dy
+                    )
+            );
 
-        nave.setPosicion(nueva);
+            // Finalizo la preparacion.
+            direccionesWarp.remove(nave);
 
-        motor.iniciarEnfriamiento();
-
-        motor.resetearTurnosEnfriamiento();
-        motor.resetearTurnosPreparacion();
-
-        nave.generarDesgaste(DESGASTE_WARP);
-
-        direccionesWarp.remove(nave);
-
-        Bitacora.getInstance().registrar(
-                "Navegacion: Warp ejecutado a ("
-                        + nueva.getX() + ","
-                        + nueva.getY()
-                        + "); -5 energia y +3 desgaste"
-        );
-    }
-
-    /**
-     * Procesa el enfriamiento del motor.
-     *
-     * Pre: el motor esta en Enfriamento.
-     *
-     * Post:
-     * - Registra un turno de enfriamiento.
-     * - Cuando termina, devuelve el motor a Disponible.
-     *
-     * @param motor motor que debe enfriarse
-     */
-    private void avanzarEnfriamiento(MotorWarp motor) {
-
-        motor.setTurnosEnfriamiento(
-                motor.getTurnosEnfriamiento() + 1
-        );
-
-        Bitacora.getInstance().registrar(
-                "Navegacion: enfriamiento Warp ("
-                        + motor.getTurnosEnfriamiento()
-                        + "/" + TURNOS_ENFRIAMIENTO + ")"
-        );
-
-        if (motor.getTurnosEnfriamiento()
-                >= TURNOS_ENFRIAMIENTO) {
-
-            motor.volverAlDisponible();
-            motor.resetearTurnosEnfriamiento();
+            // Queda pendiente un turno
+            // de enfriamiento.
+            enfriamientosPendientes.add(nave);
         }
     }
 
     /**
-     * Comprueba si puede realizarse un Warp
-     * de dos casillas en la direccion indicada.
+     * Comprueba la viabilidad de un Warp.
      *
      * Pre:
-     * - actual y destino estan dentro del tablero.
-     * - La direccion es ortogonal.
+     * - actual y destino son posiciones validas.
+     * - dx y dy representan una direccion ortogonal.
      *
      * Post:
-     * - No modifica el estado del universo.
+     * - No modifica ningun estado.
      * - Devuelve false si el aterrizaje supera
      *   los limites o sobrepasa el objetivo.
      *
-     * @return true si el desplazamiento es valido
+     * @return true si el salto es viable
      */
-    private boolean puedeLlegarDosCasillas(
+    private boolean puedeSaltarDos(
             Posicion actual,
             Posicion destino,
-            int deltaX,
-            int deltaY) {
+            int dx,
+            int dy) {
 
-        Posicion aterrizaje = nuevaPosicion(
+        Posicion aterrizaje = desplazar(
                 actual,
-                2 * deltaX,
-                2 * deltaY
+                2 * dx,
+                2 * dy
         );
 
         if (!estaDentro(aterrizaje)) {
             return false;
         }
 
-        if (deltaX != 0) {
+        if (dx != 0) {
 
             return Math.abs(
                     destino.getX() - actual.getX()
@@ -534,13 +438,13 @@ public class ReglasNavegacion {
     }
 
     /**
-     * Comprueba si una posicion pertenece al tablero.
+     * Comprueba los limites del tablero.
      *
      * Pre: p != null.
-     * Post: no modifica el tablero.
+     * Post: no modifica ningun estado.
      *
-     * @param p posicion a verificar
-     * @return true si pertenece al tablero
+     * @param p posicion a comprobar
+     * @return true si esta dentro del tablero
      */
     private boolean estaDentro(Posicion p) {
 
@@ -555,23 +459,22 @@ public class ReglasNavegacion {
     /**
      * Construye una posicion desplazada.
      *
-     * Pre: actual != null.
-     * Post: devuelve una posicion nueva sin modificar
-     *       la posicion original.
+     * Pre: p != null.
+     * Post: devuelve una nueva posicion.
      *
-     * @param actual posicion inicial
-     * @param deltaX desplazamiento horizontal
-     * @param deltaY desplazamiento vertical
+     * @param p posicion inicial
+     * @param dx desplazamiento horizontal
+     * @param dy desplazamiento vertical
      * @return nueva posicion
      */
-    private Posicion nuevaPosicion(
-            Posicion actual,
-            int deltaX,
-            int deltaY) {
+    private static Posicion desplazar(
+            Posicion p,
+            int dx,
+            int dy) {
 
         return new Posicion(
-                actual.getX() + deltaX,
-                actual.getY() + deltaY
+                p.getX() + dx,
+                p.getY() + dy
         );
     }
 
@@ -579,7 +482,7 @@ public class ReglasNavegacion {
      * Devuelve los sensores utilizados.
      *
      * Pre: ninguna.
-     * Post: no modifica el estado.
+     * Post: no modifica ningun estado.
      *
      * @return sensores de navegacion
      */
