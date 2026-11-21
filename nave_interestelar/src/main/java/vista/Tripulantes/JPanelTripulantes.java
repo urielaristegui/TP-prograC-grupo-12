@@ -1,3 +1,4 @@
+
 package vista.Tripulantes;
 
 import java.awt.BorderLayout;
@@ -5,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,200 +20,510 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import modelo.Tripulacion.Tripulante;
+
 import Controlador.TripulantesController;
-import vista.Tripulantes.TripulacionObserver;
+import modelo.Tripulacion.Tripulante;
 
-public class JPanelTripulantes extends JPanel implements TripulacionObserver {
+/**
+ * Vista MVC de tripulantes, origen y haberes.
+ *
+ * Invariantes:
+ * - El controlador no es nulo.
+ * - La lista visible respeta el filtro seleccionado.
+ * - Los haberes se calculan en el modelo.
+ */
+public class JPanelTripulantes extends JPanel
+        implements TripulacionObserver {
 
-        private final TripulantesController controlador;
-        private final DefaultTableModel modeloTabla;
-        private final JTable tablaTripulantes;
-        private final JComboBox<String> comboCargo;
-        private final JButton btnRegistrarConsejo;
-        private final JButton btnActualizar;
-        private final JTextArea areaDetalle;
-        private final JLabel lblTotalHaberes;
+    private final TripulantesController controlador;
 
-        private List<Tripulante> tripulantesVisibles = new ArrayList<>();
+    private final DefaultTableModel modeloTabla;
+    private final JTable tablaTripulantes;
 
-        public JPanelTripulantes(TripulantesController controlador) {
-            if (controlador == null) {
-                throw new IllegalArgumentException("El controlador no puede ser nulo.");
-            }
-            this.controlador = controlador;
+    private final JComboBox<String> comboCargo;
+    private final JButton btnRegistrarConsejo;
 
-            setLayout(new BorderLayout(10, 10));
-            setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+    private final JTextArea areaDetalle;
+    private final JLabel lblTotalHaberes;
 
-            // Encabezado y controles
-            JPanel panelSuperior = new JPanel(new BorderLayout(8, 8));
-            JLabel lblTitulo = new JLabel("Tripulación y Haberes");
-            lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 16f));
-            panelSuperior.add(lblTitulo, BorderLayout.WEST);
+    private List<Tripulante> tripulantesVisibles =
+            new ArrayList<>();
 
-            JPanel panelControles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-            panelControles.add(new JLabel("Cargo:"));
-            comboCargo = new JComboBox<>(new String[]{"Todos", "Capitán", "Consejero", "Teniente", "Alférez"});
-            panelControles.add(comboCargo);
+    /**
+     * Construye la interfaz de tripulantes.
+     *
+     * Pre: controlador != null.
+     *
+     * Post:
+     * - Inicializa los componentes.
+     * - Registra los listeners.
+     * - Registra la vista como observadora.
+     *
+     * @param controlador controlador de tripulantes
+     */
+    public JPanelTripulantes(
+            TripulantesController controlador) {
 
-            btnRegistrarConsejo = new JButton("Registrar consejo (+2 PG)");
-            btnRegistrarConsejo.setEnabled(false);
-            panelControles.add(btnRegistrarConsejo);
+        if (controlador == null) {
 
-            btnActualizar = new JButton("Actualizar");
-            panelControles.add(btnActualizar);
-
-            panelSuperior.add(panelControles, BorderLayout.EAST);
-            add(panelSuperior, BorderLayout.NORTH);
-
-            // Tabla de tripulantes
-            String[] columnas = {"Identidad", "Cargo", "Origen", "Antigüedad (años)", "Haber (PG)"};
-            modeloTabla = new DefaultTableModel(columnas, 0) {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    return false;
-                }
-            };
-
-            tablaTripulantes = new JTable(modeloTabla);
-            tablaTripulantes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            tablaTripulantes.setRowHeight(24);
-            tablaTripulantes.getTableHeader().setReorderingAllowed(false);
-
-            JScrollPane scrollTabla = new JScrollPane(tablaTripulantes);
-            scrollTabla.setBorder(BorderFactory.createTitledBorder("Tripulantes"));
-
-            // Detalle del tripulante seleccionado
-            areaDetalle = new JTextArea(6, 40);
-            areaDetalle.setEditable(false);
-            areaDetalle.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-
-            JScrollPane scrollDetalle = new JScrollPane(areaDetalle);
-            scrollDetalle.setBorder(BorderFactory.createTitledBorder("Detalle del tripulante"));
-
-            JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTabla, scrollDetalle);
-            splitPane.setResizeWeight(0.65);
-            add(splitPane, BorderLayout.CENTER);
-
-            // Pie con suma de haberes
-            lblTotalHaberes = new JLabel("Total haberes: 0.00 PG | Tripulantes: 0", SwingConstants.RIGHT);
-            lblTotalHaberes.setFont(lblTotalHaberes.getFont().deriveFont(Font.BOLD, 12f));
-            add(lblTotalHaberes, BorderLayout.SOUTH);
-
-            configurarListeners();
-            this.controlador.setVista(this);
+            throw new IllegalArgumentException(
+                    "El controlador no puede ser nulo"
+            );
         }
 
-        private void configurarListeners() {
-            comboCargo.addActionListener(e -> {
-                String cargoSeleccionado = (String) comboCargo.getSelectedItem();
-                controlador.filtrarPorCargo(cargoSeleccionado);
-            });
+        this.controlador = controlador;
 
-            btnActualizar.addActionListener(e -> {
-                String cargoSeleccionado = (String) comboCargo.getSelectedItem();
-                if (cargoSeleccionado == null || "Todos".equals(cargoSeleccionado)) {
-                    controlador.refrescar();
-                } else {
-                    controlador.filtrarPorCargo(cargoSeleccionado);
+        setLayout(new BorderLayout(10, 10));
+
+        setBorder(
+                BorderFactory.createEmptyBorder(
+                        12, 12, 12, 12
+                )
+        );
+
+        // =====================================
+        // ENCABEZADO
+        // =====================================
+
+        JPanel superior = new JPanel(
+                new BorderLayout(8, 8)
+        );
+
+        JLabel titulo = new JLabel(
+                "Tripulacion y Haberes"
+        );
+
+        titulo.setFont(
+                titulo.getFont().deriveFont(
+                        Font.BOLD, 16f
+                )
+        );
+
+        superior.add(
+                titulo,
+                BorderLayout.WEST
+        );
+
+        // =====================================
+        // FILTROS Y CONTROLES
+        // =====================================
+
+        JPanel controles = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT, 8, 0)
+        );
+
+        controles.add(
+                new JLabel("Cargo:")
+        );
+
+        comboCargo = new JComboBox<>(
+                new String[]{
+                        "Todos",
+                        "Capitán",
+                        "Consejero",
+                        "Teniente",
+                        "Alférez"
                 }
-            });
+        );
 
-            tablaTripulantes.getSelectionModel().addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
-                    actualizarDetalle();
-                }
-            });
+        controles.add(comboCargo);
 
-            btnRegistrarConsejo.addActionListener(e -> {
-                int fila = tablaTripulantes.getSelectedRow();
-                if (fila >= 0 && fila < tripulantesVisibles.size()) {
-                    controlador.registrarConsejo(tripulantesVisibles.get(fila));
-                }
-            });
-        }
+        btnRegistrarConsejo = new JButton(
+                "Registrar consejo (+2 PG)"
+        );
 
-        private void actualizarDetalle() {
-            int fila = tablaTripulantes.getSelectedRow();
-            if (fila < 0 || fila >= tripulantesVisibles.size()) {
-                btnRegistrarConsejo.setEnabled(false);
-                areaDetalle.setText("");
-                return;
+        btnRegistrarConsejo.setEnabled(false);
+
+        controles.add(btnRegistrarConsejo);
+
+        JButton btnActualizar = new JButton(
+                "Actualizar"
+        );
+
+        controles.add(btnActualizar);
+
+        superior.add(
+                controles,
+                BorderLayout.EAST
+        );
+
+        add(
+                superior,
+                BorderLayout.NORTH
+        );
+
+        // =====================================
+        // TABLA DE TRIPULANTES
+        // =====================================
+
+        modeloTabla = new DefaultTableModel(
+                new String[]{
+                        "Identidad",
+                        "Cargo",
+                        "Origen",
+                        "Antiguedad (años)",
+                        "Haber (PG)"
+                },
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(
+                    int fila,
+                    int columna) {
+
+                return false;
             }
+        };
 
-            Tripulante t = tripulantesVisibles.get(fila);
-            boolean esConsejero = t.getCargo() != null && t.getCargo().equalsIgnoreCase("Consejero");
-            btnRegistrarConsejo.setEnabled(esConsejero);
+        tablaTripulantes = new JTable(
+                modeloTabla
+        );
 
-            double haberBaseYDecoradores = t.getSueldo();
-            int consejos = esConsejero ? controlador.getConsejos(t) : 0;
-            double plusConsejos = consejos * 2.0;
-            double haberTotal = controlador.calcularHaberTotal(t);
+        tablaTripulantes.setRowHeight(24);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("Identidad: ").append(t.getID()).append("\n");
-            sb.append("Cargo: ").append(t.getCargo()).append("\n");
-            sb.append("Origen: ").append(t.getOrigen()).append("\n");
-            sb.append("Antigüedad: ").append(t.getAntiguedad()).append(" años\n");
-            sb.append(String.format("Sueldo / Haber (Decorator): %.2f PG%n", haberBaseYDecoradores));
-            if (esConsejero) {
-                sb.append(String.format("Consejos registrados: %d (+%.2f PG)%n", consejos, plusConsejos));
-            }
-            sb.append(String.format("Total a percibir: %.2f PG", haberTotal));
+        tablaTripulantes.setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION
+        );
 
-            areaDetalle.setText(sb.toString());
-            areaDetalle.setCaretPosition(0);
-        }
+        tablaTripulantes.getTableHeader()
+                .setReorderingAllowed(false);
 
-        @Override
-        public void onTripulacionActualizada(List<Tripulante> tripulantes) {
-            Runnable actualizarUI = () -> {
-                Tripulante seleccionadoPrevio = null;
-                int filaPrevia = tablaTripulantes.getSelectedRow();
-                if (filaPrevia >= 0 && filaPrevia < tripulantesVisibles.size()) {
-                    seleccionadoPrevio = tripulantesVisibles.get(filaPrevia);
-                }
+        JScrollPane scrollTabla =
+                new JScrollPane(tablaTripulantes);
 
-                this.tripulantesVisibles = new ArrayList<>(tripulantes);
-                modeloTabla.setRowCount(0);
+        scrollTabla.setBorder(
+                BorderFactory.createTitledBorder(
+                        "Tripulantes"
+                )
+        );
 
-                double total = 0.0;
-                int filaAReseleccionar = -1;
+        // =====================================
+        // DETALLE DEL TRIPULANTE
+        // =====================================
 
-                for (int i = 0; i < tripulantesVisibles.size(); i++) {
-                    Tripulante t = tripulantesVisibles.get(i);
-                    double haber = controlador.calcularHaberTotal(t);
-                    modeloTabla.addRow(new Object[]{
-                            t.getID(),
-                            t.getCargo(),
-                            t.getOrigen(),
-                            t.getAntiguedad(),
-                            String.format("%.2f PG", haber)
-                    });
-                    total += haber;
-                    if (seleccionadoPrevio != null && seleccionadoPrevio == t) {
-                        filaAReseleccionar = i;
+        areaDetalle = new JTextArea(6, 40);
+
+        areaDetalle.setEditable(false);
+
+        areaDetalle.setFont(
+                new Font(
+                        Font.MONOSPACED,
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        JScrollPane scrollDetalle =
+                new JScrollPane(areaDetalle);
+
+        scrollDetalle.setBorder(
+                BorderFactory.createTitledBorder(
+                        "Detalle del tripulante"
+                )
+        );
+
+        // =====================================
+        // DISTRIBUCION CENTRAL
+        // =====================================
+
+        JSplitPane split = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                scrollTabla,
+                scrollDetalle
+        );
+
+        split.setResizeWeight(0.65);
+
+        add(
+                split,
+                BorderLayout.CENTER
+        );
+
+        // =====================================
+        // TOTAL DE HABERES
+        // =====================================
+
+        lblTotalHaberes = new JLabel(
+                "Total haberes: 0.00 PG | Tripulantes: 0",
+                SwingConstants.RIGHT
+        );
+
+        lblTotalHaberes.setFont(
+                lblTotalHaberes.getFont().deriveFont(
+                        Font.BOLD, 12f
+                )
+        );
+
+        add(
+                lblTotalHaberes,
+                BorderLayout.SOUTH
+        );
+
+        // =====================================
+        // LISTENERS
+        // =====================================
+
+        // Filtrar tripulantes por cargo.
+        comboCargo.addActionListener(e -> {
+
+            controlador.filtrarPorCargo(
+                    (String) comboCargo.getSelectedItem()
+            );
+        });
+
+        // Actualizar la tabla manualmente.
+        btnActualizar.addActionListener(
+                e -> controlador.refrescar()
+        );
+
+        // Mostrar detalle del tripulante.
+        tablaTripulantes.getSelectionModel()
+                .addListSelectionListener(e -> {
+
+                    if (!e.getValueIsAdjusting()) {
+                        actualizarDetalle();
                     }
-                }
+                });
 
-                lblTotalHaberes.setText(String.format(
-                        "Total haberes: %.2f PG | Tripulantes: %d",
-                        total, tripulantesVisibles.size()
-                ));
+        // Registrar consejo en el modelo.
+        btnRegistrarConsejo.addActionListener(e -> {
 
-                if (filaAReseleccionar >= 0) {
-                    tablaTripulantes.setRowSelectionInterval(filaAReseleccionar, filaAReseleccionar);
-                } else {
-                    actualizarDetalle();
-                }
-            };
+            int fila =
+                    tablaTripulantes.getSelectedRow();
 
-            if (SwingUtilities.isEventDispatchThread()) {
-                actualizarUI.run();
-            } else {
-                SwingUtilities.invokeLater(actualizarUI);
+            if (fila >= 0
+                    && fila < tripulantesVisibles.size()) {
+
+                controlador.registrarConsejo(
+                        tripulantesVisibles.get(fila)
+                );
             }
-        }
-}
+        });
 
+        // Registrar la vista en el controlador.
+        controlador.setVista(this);
+    }
+
+    /**
+     * Actualiza el detalle del tripulante seleccionado.
+     *
+     * Pre: la tabla esta inicializada.
+     *
+     * Post:
+     * - Muestra identidad, cargo y origen.
+     * - Muestra sueldo con Decorator.
+     * - Incluye los consejos sin duplicar el bono.
+     * - Habilita registrar consejos solo
+     *   cuando corresponde.
+     */
+    private void actualizarDetalle() {
+
+        int fila =
+                tablaTripulantes.getSelectedRow();
+
+        if (fila < 0
+                || fila >= tripulantesVisibles.size()) {
+
+            btnRegistrarConsejo.setEnabled(false);
+
+            areaDetalle.setText("");
+
+            return;
+        }
+
+        Tripulante t =
+                tripulantesVisibles.get(fila);
+
+        boolean esConsejero =
+                "Consejero".equalsIgnoreCase(
+                        t.getCargo()
+                );
+
+        btnRegistrarConsejo.setEnabled(
+                esConsejero
+        );
+
+        // El modelo ya incluye el subsidio
+        // del origen y los consejos registrados.
+        double haber =
+                controlador.calcularHaberTotal(t);
+
+        int consejos = esConsejero
+                ? controlador.getConsejos(t)
+                : 0;
+
+        // =====================================
+        // ARMAR DETALLE
+        // =====================================
+
+        StringBuilder detalle =
+                new StringBuilder();
+
+        detalle.append("Identidad: ")
+                .append(t.getID())
+                .append('\n');
+
+        detalle.append("Cargo: ")
+                .append(t.getCargo())
+                .append('\n');
+
+        detalle.append("Origen: ")
+                .append(t.getOrigen())
+                .append('\n');
+
+        detalle.append("Antiguedad: ")
+                .append(t.getAntiguedad())
+                .append(" años\n");
+
+        detalle.append(
+                String.format(
+                        "Haber con origen y consejos: %.2f PG%n",
+                        haber
+                )
+        );
+
+        if (esConsejero) {
+
+            detalle.append(
+                    String.format(
+                            "Consejos registrados: %d "
+                                    + "(%.2f PG ya incluidos)%n",
+                            consejos,
+                            consejos * 2.0
+                    )
+            );
+        }
+
+        detalle.append(
+                String.format(
+                        "Total a percibir: %.2f PG",
+                        haber
+                )
+        );
+
+        areaDetalle.setText(
+                detalle.toString()
+        );
+
+        areaDetalle.setCaretPosition(0);
+    }
+
+    /**
+     * Recibe la tripulacion actualizada.
+     *
+     * Pre:
+     * - tripulantes != null.
+     *
+     * Post:
+     * - Actualiza la tabla.
+     * - Recalcula el total de haberes.
+     * - Conserva la seleccion cuando es posible.
+     * - Actualiza los componentes en el EDT.
+     *
+     * @param tripulantes tripulantes filtrados
+     */
+    @Override
+    public void onTripulacionActualizada(
+            List<Tripulante> tripulantes) {
+
+        Runnable actualizar = () -> {
+
+            // =====================================
+            // CONSERVAR LA SELECCION
+            // =====================================
+
+            Tripulante anterior = null;
+
+            int fila =
+                    tablaTripulantes.getSelectedRow();
+
+            if (fila >= 0
+                    && fila < tripulantesVisibles.size()) {
+
+                anterior =
+                        tripulantesVisibles.get(fila);
+            }
+
+            // =====================================
+            // ACTUALIZAR LISTA Y TABLA
+            // =====================================
+
+            tripulantesVisibles =
+                    new ArrayList<>(tripulantes);
+
+            modeloTabla.setRowCount(0);
+
+            int filaAnterior = -1;
+            double total = 0;
+
+            for (int i = 0;
+                 i < tripulantesVisibles.size();
+                 i++) {
+
+                Tripulante t =
+                        tripulantesVisibles.get(i);
+
+                double haber =
+                        controlador.calcularHaberTotal(t);
+
+                modeloTabla.addRow(
+                        new Object[]{
+                                t.getID(),
+                                t.getCargo(),
+                                t.getOrigen(),
+                                t.getAntiguedad(),
+                                String.format(
+                                        "%.2f PG",
+                                        haber
+                                )
+                        }
+                );
+
+                total += haber;
+
+                if (t == anterior) {
+                    filaAnterior = i;
+                }
+            }
+
+            // =====================================
+            // TOTAL DE HABERES
+            // =====================================
+
+            lblTotalHaberes.setText(
+                    String.format(
+                            "Total haberes: %.2f PG "
+                                    + "| Tripulantes: %d",
+                            total,
+                            tripulantesVisibles.size()
+                    )
+            );
+
+            // =====================================
+            // RESTAURAR SELECCION
+            // =====================================
+
+            if (filaAnterior >= 0) {
+
+                tablaTripulantes.setRowSelectionInterval(
+                        filaAnterior,
+                        filaAnterior
+                );
+            }
+
+            actualizarDetalle();
+        };
+
+        // Actualizar Swing solo en el EDT.
+        if (SwingUtilities.isEventDispatchThread()) {
+
+            actualizar.run();
+
+        } else {
+
+            SwingUtilities.invokeLater(
+                    actualizar
+            );
+        }
+    }
+}

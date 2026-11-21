@@ -230,6 +230,52 @@ public final class CreacionNaveController {
         return nuevo;
     }
 
+
+    /**
+     * Crea un tripulante con origen planetario.
+     *
+     * Pre:
+     * - Existe una nave creada.
+     * - Identidad unica y datos validos.
+     * - origen != null.
+     *
+     * Post:
+     * - Incorpora el tripulante a la nave.
+     * - Aplica el Decorator correspondiente.
+     * - Actualiza la vista de haberes.
+     *
+     * @param nombre identidad del tripulante
+     * @param cargo cargo seleccionado
+     * @param antiguedad antiguedad en anios
+     * @param origen planeta de origen
+     * @return tripulante incorporado
+     */
+    public Tripulante agregarTripulante(
+            String nombre,
+            Cargo cargo,
+            double antiguedad,
+            Tripulante.Origen origen) {
+
+        if (origen == null) {
+            throw new IllegalArgumentException(
+                    "Selecciona un origen"
+            );
+        }
+
+        Tripulante nuevo = agregarTripulante(
+                nombre,
+                cargo,
+                antiguedad
+        );
+
+        nuevo.asignarOrigen(origen);
+
+        tripulantesController.refrescar();
+
+        return nuevo;
+    }
+
+
     /**
      * Pre: ninguna.
      * Post: no modifica el modelo.

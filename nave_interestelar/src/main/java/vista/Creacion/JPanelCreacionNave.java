@@ -1,24 +1,43 @@
 
 package vista.Creacion;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 
 import Controlador.CreacionNaveController;
 import Controlador.CreacionNaveController.Cargo;
 import modelo.Tripulacion.Tripulante;
+import modelo.Tripulacion.Tripulante.Origen;
 import modelo.nave.Nave;
 import modelo.nave.TipoNave;
 
 /**
- * Vista MVC para crear naves y asignar tripulantes.
+ * Vista MVC para crear la nave y asignarle tripulantes.
  *
- * Invariantes:
- * - controlador != null.
- * - Los componentes Swing estan inicializados.
- * - Las reglas de negocio estan en el controlador.
+ * Invariante:
+ * - El controlador existe.
+ * - Las reglas de negocio se delegan en el controlador.
  */
 public final class JPanelCreacionNave extends JPanel {
 
@@ -34,23 +53,15 @@ public final class JPanelCreacionNave extends JPanel {
 
     private final JTextField txtIdentidad;
     private final JComboBox<Cargo> comboCargo;
+    private final JComboBox<Origen> comboOrigen;
     private final JSpinner spinnerAntiguedad;
     private final JButton btnAgregar;
 
     private final DefaultTableModel modeloTabla;
 
     /**
-     * Construye el panel grafico.
-     *
      * Pre: controlador != null.
-     *
-     * Post:
-     * - Inicializa los componentes.
-     * - Registra los listeners.
-     * - Muestra el estado inicial.
-     *
-     * @param controlador controlador de creacion
-     * @throws IllegalArgumentException si es null
+     * Post: construye y conecta el formulario.
      */
     public JPanelCreacionNave(
             CreacionNaveController controlador) {
@@ -64,16 +75,15 @@ public final class JPanelCreacionNave extends JPanel {
         this.controlador = controlador;
 
         setLayout(new BorderLayout(12, 12));
-
         setBorder(
                 BorderFactory.createEmptyBorder(18, 18, 18, 18)
         );
 
-        // ===========================================
+        // =====================================
         // ENCABEZADO
-        // ===========================================
+        // =====================================
 
-        JPanel panelSuperior =
+        JPanel superior =
                 new JPanel(new BorderLayout(10, 10));
 
         JLabel titulo = new JLabel(
@@ -84,11 +94,11 @@ public final class JPanelCreacionNave extends JPanel {
                 titulo.getFont().deriveFont(Font.BOLD, 19f)
         );
 
-        panelSuperior.add(titulo, BorderLayout.NORTH);
+        superior.add(titulo, BorderLayout.NORTH);
 
-        // ===========================================
-        // CREACION DE NAVE
-        // ===========================================
+        // =====================================
+        // 1. CREACION DE NAVE
+        // =====================================
 
         JPanel formularioNave =
                 new JPanel(new GridBagLayout());
@@ -98,8 +108,6 @@ public final class JPanelCreacionNave extends JPanel {
                         "1. Crear nave"
                 )
         );
-
-        GridBagConstraints c = constraints();
 
         comboTipo = new JComboBox<>(TipoNave.values());
 
@@ -111,7 +119,6 @@ public final class JPanelCreacionNave extends JPanel {
 
         agregarCampo(
                 formularioNave,
-                c,
                 0,
                 "Tipo de nave:",
                 comboTipo
@@ -119,23 +126,18 @@ public final class JPanelCreacionNave extends JPanel {
 
         agregarCampo(
                 formularioNave,
-                c,
                 1,
                 "ID de la nave:",
                 spinnerId
         );
 
-        c.gridx = 1;
-        c.gridy = 2;
-        c.weightx = 0;
-        c.fill = GridBagConstraints.NONE;
+        agregarBoton(formularioNave, 2, btnCrear);
 
-        formularioNave.add(btnCrear, c);
+        // =====================================
+        // RESUMEN DE NAVE
+        // =====================================
 
-        // ===========================================
-        // RESUMEN DE NAVE - CORREGIDO
-        // ===========================================
-
+        // GridLayout evita superponer las etiquetas.
         JPanel resumen = new JPanel(
                 new GridLayout(3, 1, 0, 8)
         );
@@ -155,26 +157,13 @@ public final class JPanelCreacionNave extends JPanel {
                 new Dimension(450, 115)
         );
 
-        lblNave = new JLabel(
-                "Todavia no se creo una nave para esta sesion"
-        );
+        lblNave = new JLabel();
+        lblRecursos = new JLabel();
+        lblEstado = new JLabel();
 
-        lblRecursos = new JLabel(
-                "Combustible: - | Energia: - | Desgaste: -"
-        );
-
-        lblEstado = new JLabel(
-                "Tripulacion: 0/5 | Falta Capitan"
-        );
-
-        // Una etiqueta por fila.
         resumen.add(lblNave);
         resumen.add(lblRecursos);
         resumen.add(lblEstado);
-
-        // ===========================================
-        // CONTENEDOR SUPERIOR
-        // ===========================================
 
         JPanel seccionNave =
                 new JPanel(new BorderLayout(10, 12));
@@ -189,34 +178,38 @@ public final class JPanelCreacionNave extends JPanel {
                 BorderLayout.SOUTH
         );
 
-        panelSuperior.add(
+        superior.add(
                 seccionNave,
                 BorderLayout.CENTER
         );
 
-        add(panelSuperior, BorderLayout.NORTH);
+        add(superior, BorderLayout.NORTH);
 
-        // ===========================================
-        // ASIGNACION DE TRIPULANTES
-        // ===========================================
+        // =====================================
+        // 2. ASIGNACION DE TRIPULANTES
+        // =====================================
 
-        JPanel panelTripulacion =
+        JPanel seccionTripulacion =
                 new JPanel(new BorderLayout(10, 10));
 
-        panelTripulacion.setBorder(
+        seccionTripulacion.setBorder(
                 BorderFactory.createTitledBorder(
                         "2. Asignar tripulantes"
                 )
         );
 
-        JPanel datosTripulante =
+        JPanel formularioTripulante =
                 new JPanel(new GridBagLayout());
-
-        GridBagConstraints t = constraints();
 
         txtIdentidad = new JTextField(18);
 
-        comboCargo = new JComboBox<>(Cargo.values());
+        comboCargo = new JComboBox<>(
+                Cargo.values()
+        );
+
+        comboOrigen = new JComboBox<>(
+                Origen.values()
+        );
 
         spinnerAntiguedad = new JSpinner(
                 new SpinnerNumberModel(
@@ -231,51 +224,55 @@ public final class JPanelCreacionNave extends JPanel {
         btnAgregar.setEnabled(false);
 
         agregarCampo(
-                datosTripulante,
-                t,
+                formularioTripulante,
                 0,
                 "Identidad / Nombre:",
                 txtIdentidad
         );
 
         agregarCampo(
-                datosTripulante,
-                t,
+                formularioTripulante,
                 1,
                 "Cargo:",
                 comboCargo
         );
 
         agregarCampo(
-                datosTripulante,
-                t,
+                formularioTripulante,
                 2,
                 "Antiguedad (anios):",
                 spinnerAntiguedad
         );
 
-        t.gridx = 1;
-        t.gridy = 3;
-        t.weightx = 0;
-        t.fill = GridBagConstraints.NONE;
+        agregarCampo(
+                formularioTripulante,
+                3,
+                "Origen:",
+                comboOrigen
+        );
 
-        datosTripulante.add(btnAgregar, t);
+        agregarBoton(
+                formularioTripulante,
+                4,
+                btnAgregar
+        );
 
-        panelTripulacion.add(
-                datosTripulante,
+        seccionTripulacion.add(
+                formularioTripulante,
                 BorderLayout.NORTH
         );
 
-        // ===========================================
+        // =====================================
         // TABLA DE TRIPULANTES
-        // ===========================================
+        // =====================================
 
         modeloTabla = new DefaultTableModel(
                 new String[]{
                         "Identidad",
                         "Cargo",
+                        "Origen",
                         "Antiguedad",
-                        "Haber base"
+                        "Haber con origen"
                 },
                 0
         ) {
@@ -283,6 +280,7 @@ public final class JPanelCreacionNave extends JPanel {
             public boolean isCellEditable(
                     int fila,
                     int columna) {
+
                 return false;
             }
         };
@@ -296,21 +294,17 @@ public final class JPanelCreacionNave extends JPanel {
                 false
         );
 
-        JScrollPane scrollTabla =
+        JScrollPane scroll =
                 new JScrollPane(tabla);
 
-        scrollTabla.setPreferredSize(
+        scroll.setPreferredSize(
                 new Dimension(500, 180)
         );
 
-        panelTripulacion.add(
-                scrollTabla,
+        seccionTripulacion.add(
+                scroll,
                 BorderLayout.CENTER
         );
-
-        // ===========================================
-        // MENSAJE DE AYUDA
-        // ===========================================
 
         JPanel ayuda = new JPanel(
                 new FlowLayout(FlowLayout.LEFT)
@@ -322,19 +316,19 @@ public final class JPanelCreacionNave extends JPanel {
                 )
         );
 
-        panelTripulacion.add(
+        seccionTripulacion.add(
                 ayuda,
                 BorderLayout.SOUTH
         );
 
         add(
-                panelTripulacion,
+                seccionTripulacion,
                 BorderLayout.CENTER
         );
 
-        // ===========================================
+        // =====================================
         // LISTENERS
-        // ===========================================
+        // =====================================
 
         btnCrear.addActionListener(
                 e -> crearNave()
@@ -348,57 +342,24 @@ public final class JPanelCreacionNave extends JPanel {
     }
 
     /**
-     * Crea las restricciones para GridBagLayout.
+     * Agrega un campo al formulario.
      *
-     * Pre: ninguna.
-     *
-     * Post:
-     * - Devuelve restricciones inicializadas.
-     * - No modifica ningun componente.
-     *
-     * @return restricciones de posicionamiento
+     * Pre: panel, etiqueta y campo validos.
+     * Post: agrega una fila al formulario.
      */
-    private GridBagConstraints constraints() {
+    private void agregarCampo(
+            JPanel panel,
+            int fila,
+            String etiqueta,
+            Component campo) {
 
         GridBagConstraints c =
                 new GridBagConstraints();
 
         c.insets = new Insets(5, 7, 5, 7);
         c.anchor = GridBagConstraints.WEST;
-        c.weightx = 0;
-        c.weighty = 0;
-
-        return c;
-    }
-
-    /**
-     * Agrega un campo y su etiqueta al formulario.
-     *
-     * Pre:
-     * - panel != null.
-     * - c != null.
-     * - componente != null.
-     *
-     * Post:
-     * - Agrega la etiqueta y el componente.
-     *
-     * @param panel formulario
-     * @param c restricciones de GridBagLayout
-     * @param fila fila del formulario
-     * @param etiqueta texto del campo
-     * @param componente componente a agregar
-     */
-    private void agregarCampo(
-            JPanel panel,
-            GridBagConstraints c,
-            int fila,
-            String etiqueta,
-            Component componente) {
-
         c.gridy = fila;
         c.gridx = 0;
-        c.weightx = 0;
-        c.fill = GridBagConstraints.NONE;
 
         panel.add(
                 new JLabel(etiqueta),
@@ -409,35 +370,53 @@ public final class JPanelCreacionNave extends JPanel {
         c.weightx = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        panel.add(componente, c);
+        panel.add(campo, c);
     }
 
     /**
-     * Solicita la creacion de una nave.
+     * Agrega un boton al formulario.
      *
-     * Pre:
-     * - Se ejecuta desde un evento de Swing.
+     * Pre: boton != null.
+     * Post: agrega el boton en la fila indicada.
+     */
+    private void agregarBoton(
+            JPanel panel,
+            int fila,
+            JButton boton) {
+
+        GridBagConstraints c =
+                new GridBagConstraints();
+
+        c.insets = new Insets(5, 7, 5, 7);
+        c.anchor = GridBagConstraints.WEST;
+        c.gridx = 1;
+        c.gridy = fila;
+
+        panel.add(boton, c);
+    }
+
+    /**
+     * Crea la nave seleccionada.
+     *
+     * Pre: datos validos.
      *
      * Post:
-     * - Si tiene exito, actualiza la vista.
-     * - Deshabilita una segunda creacion.
-     * - Si falla, informa el error al usuario.
+     * - Crea la nave mediante el controlador.
+     * - Bloquea una segunda creacion.
+     * - Habilita la asignacion de tripulantes.
      */
     private void crearNave() {
 
         try {
 
-            TipoNave tipo =
-                    (TipoNave) comboTipo.getSelectedItem();
+            controlador.crearNave(
+                    (TipoNave) comboTipo.getSelectedItem(),
+                    (Integer) spinnerId.getValue()
+            );
 
-            int id = (Integer) spinnerId.getValue();
-
-            controlador.crearNave(tipo, id);
-
-            btnCrear.setEnabled(false);
             comboTipo.setEnabled(false);
             spinnerId.setEnabled(false);
-
+            btnCrear.setEnabled(false);
             btnAgregar.setEnabled(true);
 
             refrescar();
@@ -458,35 +437,27 @@ public final class JPanelCreacionNave extends JPanel {
     }
 
     /**
-     * Solicita agregar un tripulante a la nave.
+     * Incorpora un tripulante con origen.
      *
      * Pre:
-     * - La nave fue creada.
-     * - Se ejecuta desde un evento de Swing.
+     * - Existe una nave creada.
+     * - Los datos ingresados son validos.
      *
      * Post:
-     * - Incorpora al tripulante si es valido.
-     * - Actualiza tabla y resumen.
-     * - Si falla, informa el error al usuario.
+     * - Incorpora al tripulante.
+     * - Aplica Decorator por origen.
+     * - Actualiza el resumen y la tabla.
      */
     private void agregarTripulante() {
 
         try {
 
-            String nombre =
-                    txtIdentidad.getText();
-
-            Cargo cargo =
-                    (Cargo) comboCargo.getSelectedItem();
-
-            double antiguedad =
-                    ((Number) spinnerAntiguedad.getValue())
-                            .doubleValue();
-
             controlador.agregarTripulante(
-                    nombre,
-                    cargo,
-                    antiguedad
+                    txtIdentidad.getText(),
+                    (Cargo) comboCargo.getSelectedItem(),
+                    ((Number) spinnerAntiguedad.getValue())
+                            .doubleValue(),
+                    (Origen) comboOrigen.getSelectedItem()
             );
 
             txtIdentidad.setText("");
@@ -503,14 +474,7 @@ public final class JPanelCreacionNave extends JPanel {
     }
 
     /**
-     * Muestra un mensaje de error.
-     *
-     * Pre: mensaje != null.
-     *
-     * Post:
-     * - Informa el error mediante JOptionPane.
-     *
-     * @param mensaje descripcion del error
+     * Muestra los errores al usuario.
      */
     private void mostrarError(String mensaje) {
 
@@ -523,23 +487,20 @@ public final class JPanelCreacionNave extends JPanel {
     }
 
     /**
-     * Actualiza la informacion visual de la nave.
+     * Actualiza el resumen y la tabla.
      *
-     * Pre:
-     * - controlador != null.
+     * Pre: vista inicializada.
      *
      * Post:
-     * - Actualiza los recursos y estado de la nave.
-     * - Actualiza la tabla de tripulantes.
+     * - Refleja los datos reales de la nave.
+     * - Incluye origen y haber con Decorator.
      * - No modifica el modelo.
      */
     public void refrescar() {
 
         Nave nave = controlador.getNave();
 
-        // =======================================
-        // NAVE TODAVIA NO CREADA
-        // =======================================
+        modeloTabla.setRowCount(0);
 
         if (nave == null) {
 
@@ -555,14 +516,10 @@ public final class JPanelCreacionNave extends JPanel {
                     "Tripulacion: 0/5 | Falta Capitan"
             );
 
-            modeloTabla.setRowCount(0);
+            btnAgregar.setEnabled(false);
 
             return;
         }
-
-        // =======================================
-        // INFORMACION DE LA NAVE
-        // =======================================
 
         lblNave.setText(
                 "Nave #" + nave.getId()
@@ -571,26 +528,16 @@ public final class JPanelCreacionNave extends JPanel {
         );
 
         lblRecursos.setText(
-                "Combustible: "
-                        + nave.getCombustible()
-                        + " | Energia: "
-                        + nave.getEnergia()
-                        + " | Desgaste: "
-                        + nave.getDesgaste()
+                "Combustible: " + nave.getCombustible()
+                        + " | Energia: " + nave.getEnergia()
+                        + " | Desgaste: " + nave.getDesgaste()
         );
-
-        // =======================================
-        // ESTADO DE LA TRIPULACION
-        // =======================================
 
         List<Tripulante> lista =
                 controlador.getTripulantes();
 
         boolean capitan = lista.stream().anyMatch(
-                tripulante ->
-                        "Capitan".equals(
-                                tripulante.getCargo()
-                        )
+                t -> "Capitan".equals(t.getCargo())
         );
 
         String estado =
@@ -606,23 +553,19 @@ public final class JPanelCreacionNave extends JPanel {
         }
 
         lblEstado.setText(estado);
+        btnAgregar.setEnabled(true);
 
-        // =======================================
-        // TABLA DE TRIPULANTES
-        // =======================================
-
-        modeloTabla.setRowCount(0);
-
-        for (Tripulante tripulante : lista) {
+        for (Tripulante t : lista) {
 
             modeloTabla.addRow(
                     new Object[]{
-                            tripulante.getID(),
-                            tripulante.getCargo(),
-                            tripulante.getAntiguedad(),
+                            t.getID(),
+                            t.getCargo(),
+                            t.getOrigen(),
+                            t.getAntiguedad(),
                             String.format(
                                     "%.2f PG",
-                                    tripulante.getSueldo()
+                                    t.getSueldoConOrigen()
                             )
                     }
             );
