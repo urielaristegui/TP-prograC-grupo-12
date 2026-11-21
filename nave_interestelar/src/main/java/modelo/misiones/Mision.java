@@ -15,7 +15,8 @@ import modelo.elementos.ElementoDelUniverso;
  * costos de despegue, objetivo, verificación en destino y acción final.
  *
  * La misión sólo conoce al AsistenteDeComandos: nunca toca Nave ni Tablero
- * directamente.
+ * directamente. Cómo se mueve la nave en cada turno (salto normal o Warp) lo
+ * deciden las reglas de navegación, a través del asistente.
  *
  * NOTA: director() contiene un bucle con pausas (Thread.sleep). Cuando haya
  * interfaz Swing hay que invocarlo desde un hilo propio, nunca desde el hilo
@@ -35,7 +36,7 @@ public abstract class Mision {
 	// Estado interno de la misión
 	private final List<String> acciones = new ArrayList<String>();
 	private List<Posicion> ruta = new ArrayList<Posicion>();
-	private int indiceRuta;
+	private final List<Posicion> recorrido = new ArrayList<Posicion>();
 	private Posicion objetivo;
 	private boolean llegoAlDestino;
 	private String motivoFallo = "";
@@ -81,23 +82,37 @@ public abstract class Mision {
 			return false;
 		}
 		objetivo = definirObjetivo();
-		// TODO: si otro compañero implementa el radar de largo alcance, la ruta se pide a él.
-		ruta = calcularRuta(AC.posicionNave(), objetivo);
-		indiceRuta = 0;
-		llegoAlDestino = AC.posicionNave().equals(objetivo);
-		registrar("ruta calculada hacia (" + objetivo.getX() + "," + objetivo.getY()
-				+ "): " + ruta.size() + " pasos");
+		Posicion origen = AC.posicionNave();
+		ruta = calcularRuta(origen, objetivo);
+		recorrido.add(origen);
+		llegoAlDestino = origen.equals(objetivo);
+
+		List<Posicion> planificado = new ArrayList<Posicion>();
+		planificado.add(origen);
+		planificado.addAll(ruta);
+		registrar("ruta planificada hacia " + texto(objetivo) + " (" + ruta.size()
+				+ " pasos): " + formatear(planificado));
 		return true;
 	}
 
-	/** Camino recto, avanzando en diagonal mientras se pueda. No incluye el origen. */
+	/**
+	 * Ruta nominal: la que seguirían las reglas de navegación si no hubiera
+	 * obstáculos (un paso ortogonal por vez, primero sobre el eje de mayor
+	 * distancia). No incluye el origen. El recorrido real puede diferir:
+	 * los obstáculos y el salto Warp las modifican.
+	 */
 	private List<Posicion> calcularRuta(Posicion origen, Posicion destino) {
 		List<Posicion> pasos = new ArrayList<Posicion>();
 		int x = origen.getX();
 		int y = origen.getY();
 		while (x != destino.getX() || y != destino.getY()) {
-			x += Integer.signum(destino.getX() - x);
-			y += Integer.signum(destino.getY() - y);
+			int dx = destino.getX() - x;
+			int dy = destino.getY() - y;
+			if (dx != 0 && Math.abs(dx) >= Math.abs(dy)) {
+				x += Integer.signum(dx);
+			} else {
+				y += Integer.signum(dy);
+			}
 			pasos.add(new Posicion(x, y));
 		}
 		return pasos;
@@ -156,27 +171,12 @@ public abstract class Mision {
 		Posicion actual = AC.posicionNave();
 
 		if (!actual.equals(anterior)) {
+			recorrido.add(actual);
 			llegoAlDestino = actual.equals(objetivo);
-			registrar("avance a (" + actual.getX() + "," + actual.getY() + ")");
+			registrar("avance a " + texto(actual));
 		} else {
 			registrar("la nave no se desplazó en este turno");
 		}
-	}
-
-	/** Por ahora cualquier elemento cuenta como obstáculo. */
-	protected boolean hayObstaculo(ElementoDelUniverso[][] alrededores, Posicion actual, Posicion siguiente) {
-		int dx = siguiente.getX() - actual.getX();
-		int dy = siguiente.getY() - actual.getY();
-		return alrededores[dx + 1][dy + 1] != null;
-	}
-
-	private void avanzar(int pasos) {
-		int destinoIndice = Math.min(indiceRuta + pasos - 1, ruta.size() - 1);
-		Posicion nueva = ruta.get(destinoIndice);
-		AC.avanzarHacia(nueva);
-		indiceRuta = destinoIndice + 1;
-		llegoAlDestino = nueva.equals(objetivo);
-		registrar("avance a (" + nueva.getX() + "," + nueva.getY() + ")");
 	}
 
 	private void pausar() {
@@ -194,6 +194,7 @@ public abstract class Mision {
 
 	protected ResultadoMision evaluar() {
 		ResultadoMision res = motivoFallo.isEmpty() ? ResultadoMision.EXITOSA : ResultadoMision.FALLIDA;
+		registrar("recorrido real: " + formatear(recorrido));
 		registrar("evaluación -> " + res);
 
 		String balance = "Combustible " + signado(AC.getCombustible() - combustibleInicial)
@@ -217,6 +218,21 @@ public abstract class Mision {
 
 	private static String signado(int valor) {
 		return (valor >= 0 ? "+" : "") + valor;
+	}
+
+	private static String texto(Posicion p) {
+		return "(" + p.getX() + "," + p.getY() + ")";
+	}
+
+	private static String formatear(List<Posicion> puntos) {
+		StringBuilder camino = new StringBuilder();
+		for (Posicion p : puntos) {
+			if (camino.length() > 0) {
+				camino.append(" -> ");
+			}
+			camino.append(texto(p));
+		}
+		return camino.toString();
 	}
 
 	// ------------------------------------------------------------------
