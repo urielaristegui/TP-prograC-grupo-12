@@ -113,7 +113,7 @@ public class MotorWarp {
         validarNave(nave);
 
         if (estado instanceof Enfriamento) {
-            completarEnfriamiento();
+            completarEnfriamiento(nave);
             return false;
         }
 

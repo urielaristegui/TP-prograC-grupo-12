@@ -357,10 +357,15 @@ public class JFrameMain extends JFrame
                 BorderLayout.CENTER
         );
 
+
         tableroControl.add(
-                new PanelBitacoraYSensores(),
+                new PanelBitacoraYSensores(
+                        universo.getTablero(),
+                        creacionController::getNave
+                ),
                 BorderLayout.EAST
         );
+
 
         tabbedPanePrincipal.addTab(
                 "Control de Nave & Tablero",
