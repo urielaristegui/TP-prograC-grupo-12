@@ -142,10 +142,126 @@ public class AsistenteDeComandos {
 	}
 
 
-	/** M-01: entrega de recursos a la nave aliada. */
-	public void transferirRecursos(int combustible, int energia) {
-		nave.consumirRecursos(combustible, energia, 0);
+
+	/**
+	 * Transfiere recursos a una nave aliada.
+	 *
+	 * Pre:
+	 * - aliada != null y distinta de la nave propia.
+	 * - Ambas naves estan en la misma coordenada.
+	 * - Cantidades entre 0 y 50.
+	 * - La nave propia puede realizar la transferencia
+	 *   sin quedarse con recursos en cero.
+	 * - La aliada tiene capacidad para recibirlos.
+	 *
+	 * Post:
+	 * - Descuenta recursos de la nave propia.
+	 * - Acredita las mismas cantidades a la aliada.
+	 * - Si la validacion falla, no modifica recursos.
+	 *
+	 * @param aliada nave que recibe la asistencia
+	 * @param combustible combustible a transferir
+	 * @param energia energia a transferir
+	 */
+	public void transferirRecursos(
+			Nave aliada,
+			int combustible,
+			int energia) {
+
+		if (aliada == null
+				|| aliada == nave
+				|| aliada.estaDestruida()) {
+
+			throw new IllegalArgumentException(
+					"La nave aliada no es valida"
+			);
+		}
+
+		if (combustible < 0
+				|| combustible > 50
+				|| energia < 0
+				|| energia > 50) {
+
+			throw new IllegalArgumentException(
+					"La transferencia debe estar entre 0 y 50"
+			);
+		}
+
+		exigirTablero();
+
+		// Ambas naves deben ocupar la misma coordenada.
+		if (aliada.getPosicion() == null
+				|| !posicionNave().equals(
+				aliada.getPosicion()
+		)) {
+
+			throw new IllegalStateException(
+					"Las naves no estan en la misma coordenada"
+			);
+		}
+
+		// La nave propia debe continuar operativa
+		// despues de entregar los suministros.
+		if (nave.estaDestruida()
+				|| nave.getCombustible() <= combustible
+				|| nave.getEnergia() <= energia) {
+
+			throw new IllegalStateException(
+					"Recursos insuficientes para una entrega segura"
+			);
+		}
+
+		// Comprobar capacidad de la nave receptora.
+		if (aliada.getCombustible()
+				> CAPACIDAD_MAXIMA - combustible
+
+				|| aliada.getEnergia()
+				> CAPACIDAD_MAXIMA - energia) {
+
+			throw new IllegalStateException(
+					"La nave aliada no tiene capacidad disponible"
+			);
+		}
+
+		// Todas las validaciones se realizan
+		// antes de modificar cualquiera de las naves.
+		nave.consumirRecursos(
+				combustible,
+				energia,
+				0
+		);
+
+		if (combustible > 0) {
+			aliada.cargarCombustible(combustible);
+		}
+
+		if (energia > 0) {
+			aliada.cargarEnergia(energia);
+		}
+
+		registrarEvento(
+				"Asistencia entregada a nave aliada "
+						+ aliada.getId()
+						+ ": "
+						+ combustible
+						+ " de combustible y "
+						+ energia
+						+ " de energia"
+		);
 	}
+
+	/**
+	 * Consulta las gemas de la nave.
+	 *
+	 * Pre: nave != null.
+	 * Post: no modifica el modelo.
+	 *
+	 * @return gemas acumuladas por la nave
+	 */
+	public int getGemas() {
+		return nave.getGemas();
+	}
+
 
 	/** M-03: recarga total de combustible y energía, y desgaste en 0. */
 	public void recargaTotalYMantenimiento() {

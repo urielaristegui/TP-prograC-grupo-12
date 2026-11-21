@@ -43,6 +43,7 @@ public abstract class Mision {
 	private int combustibleInicial;
 	private int energiaInicial;
 	private int desgasteInicial;
+	private int gemasInicial;
 
 	public Mision(AsistenteDeComandos AC) {
 		this.AC = AC;
@@ -168,6 +169,7 @@ public abstract class Mision {
 		combustibleInicial = AC.getCombustible();
 		energiaInicial = AC.getEnergia();
 		desgasteInicial = AC.getDesgaste();
+		gemasInicial = AC.getGemas();
 
 		try {
 			AC.ordenarConsumo(getCombustibleRequerido(), getEnergiaRequerida(), getDesgasteGenerado());
@@ -245,29 +247,107 @@ public abstract class Mision {
 	// Fase 3: evaluar (arma el informe final)
 	// ------------------------------------------------------------------
 
+
+	/**
+	 * Evalua el resultado de la travesia.
+	 *
+	 * Pre:
+	 * - La fase ejecutar finalizo.
+	 * - Se registraron los recursos iniciales.
+	 *
+	 * Post:
+	 * - Determina si la mision fue exitosa o fallida.
+	 * - Genera un informe provisional.
+	 * - Mantiene el orden del Template Method.
+	 *
+	 * @return resultado de la evaluacion
+	 */
 	protected ResultadoMision evaluar() {
-		ResultadoMision res = motivoFallo.isEmpty() ? ResultadoMision.EXITOSA : ResultadoMision.FALLIDA;
-		registrar("recorrido real: " + formatear(recorrido));
-		registrar("evaluación -> " + res);
 
-		String balance = "Combustible " + signado(AC.getCombustible() - combustibleInicial)
-				+ ", Energía " + signado(AC.getEnergia() - energiaInicial)
-				+ ", Desgaste " + signado(AC.getDesgaste() - desgasteInicial);
+		ResultadoMision res = motivoFallo.isEmpty()
+				? ResultadoMision.EXITOSA
+				: ResultadoMision.FALLIDA;
 
-		String observaciones = (res == ResultadoMision.EXITOSA)
-				? "Se aplicará al cierre: " + describirCierre()
-				: motivoFallo;
+		registrar(
+				"recorrido real: " + formatear(recorrido)
+		);
 
-		// El estado de la nave del informe es previo al cierre (el cierre se aplica después).
-		informe = new InformeMision(
+		registrar(
+				"evaluacion -> " + res
+		);
+
+		informe = construirInforme(res, false);
+
+		return res;
+	}
+
+	/**
+	 * Construye el informe con los recursos actuales.
+	 *
+	 * Pre:
+	 * - Se conocen los recursos iniciales.
+	 * - res != null.
+	 *
+	 * Post:
+	 * - Devuelve un InformeMision inmutable.
+	 * - Incluye combustible, energia, desgaste
+	 *   y gemas.
+	 * - No modifica los recursos.
+	 *
+	 * @param res resultado de la mision
+	 * @param finalizado indica si ya se aplico el cierre
+	 * @return informe con el balance actualizado
+	 */
+	private InformeMision construirInforme(
+			ResultadoMision res,
+			boolean finalizado) {
+
+		String balance =
+				"Combustible "
+						+ signado(
+						AC.getCombustible() - combustibleInicial
+				)
+
+						+ ", Energia "
+						+ signado(
+						AC.getEnergia() - energiaInicial
+				)
+
+						+ ", Desgaste "
+						+ signado(
+						AC.getDesgaste() - desgasteInicial
+				)
+
+						+ ", Gemas "
+						+ signado(
+						AC.getGemas() - gemasInicial
+				);
+
+		String observaciones;
+
+		if (res == ResultadoMision.FALLIDA) {
+
+			observaciones = motivoFallo;
+
+		} else {
+
+			observaciones =
+					(finalizado
+							? "Cierre completado: "
+							: "Pendiente de cierre: ")
+							+ describirCierre();
+		}
+
+		return new InformeMision(
 				getClass().getSimpleName(),
 				res,
 				new ArrayList<String>(acciones),
 				balance,
 				AC.snapshotEstadoNave(),
-				observaciones);
-		return res;
+				observaciones
+		);
 	}
+
 
 	private static String signado(int valor) {
 		return (valor >= 0 ? "+" : "") + valor;
@@ -292,14 +372,77 @@ public abstract class Mision {
 	// Fase 4: cerrar (impacta lo ganado o entregado)
 	// ------------------------------------------------------------------
 
+
+	/**
+	 * Aplica el cierre de una mision.
+	 *
+	 * Pre:
+	 * - La evaluacion fue realizada.
+	 * - resultado != null.
+	 *
+	 * Post:
+	 * - Si la mision fue exitosa, aplica los
+	 *   recursos entregados o ganados.
+	 * - Si el cierre falla, registra el error.
+	 * - Verifica que la nave siga operativa.
+	 * - Actualiza el informe con el balance
+	 *   definitivo de la mision.
+	 */
 	protected void cerrar() {
+
 		if (resultado == ResultadoMision.EXITOSA) {
-			aplicarCierre();
-			registrar("cierre aplicado: " + describirCierre());
+
+			try {
+
+				aplicarCierre();
+
+				registrar(
+						"cierre aplicado: "
+								+ describirCierre()
+				);
+
+			} catch (
+					IllegalArgumentException |
+					IllegalStateException e
+			) {
+
+				resultado = ResultadoMision.FALLIDA;
+
+				motivoFallo =
+						"error al cerrar la mision: "
+								+ e.getMessage();
+
+				registrar(motivoFallo);
+			}
+
 		} else {
-			registrar("cierre sin impacto: la misión fracasó");
+
+			registrar(
+					"cierre sin impacto: la mision fracaso"
+			);
 		}
+
+		// Una mision no puede considerarse exitosa
+		// si la nave queda destruida en el cierre.
+		if (AC.naveDestruida()) {
+
+			resultado = ResultadoMision.FALLIDA;
+
+			if (motivoFallo.isEmpty()) {
+
+				motivoFallo =
+						"la nave quedo destruida durante el cierre";
+			}
+		}
+
+		// Reconstruir el informe con todos los cambios
+		// efectuados por la fase de cierre.
+		informe = construirInforme(
+				resultado,
+				true
+		);
 	}
+
 
 	// ------------------------------------------------------------------
 	// Utilidad

@@ -339,7 +339,7 @@ public class PanelMisiones extends JPanel
                     .append(informe.getRecursosConsumidos())
                     .append("\n");
 
-            sb.append("Estado de la nave (previo al cierre): ")
+            sb.append("Estado final de la nave: ")
                     .append(informe.getEstadoNave())
                     .append("\n");
 
