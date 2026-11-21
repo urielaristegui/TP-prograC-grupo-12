@@ -53,21 +53,60 @@ public abstract class Mision {
 	// Template Method
 	// ------------------------------------------------------------------
 
+
 	/**
-	 * @return false si la misión no pudo prepararse (no llegó a ejecutarse y
-	 *         no genera informe); true si recorrió las cuatro fases, aunque
-	 *         haya terminado FALLIDA.
+	 * Ejecuta el ciclo de vida de la mision.
+	 *
+	 * Pre:
+	 * - El asistente esta inicializado.
+	 * - La nave y el tablero estan disponibles.
+	 *
+	 * Post:
+	 * - Si supera la preparacion, ejecuta las cuatro fases.
+	 * - Si no la supera, registra un informe de fallo
+	 *   sin consumir recursos.
+	 * - Conserva el orden del Template Method.
+	 *
+	 * @return true si supero la preparacion
 	 */
 	public final boolean director() {
+
 		if (!preparar()) {
-			registrar("preparación fallida, misión cancelada");
+
+			registrar(
+					"preparacion fallida, mision cancelada"
+			);
+
+			// Guardar el estado sin realizar consumos.
+			combustibleInicial = AC.getCombustible();
+			energiaInicial = AC.getEnergia();
+			desgasteInicial = AC.getDesgaste();
+			gemasInicial = AC.getGemas();
+
+			resultado = ResultadoMision.FALLIDA;
+
+			if (motivoFallo.isEmpty()) {
+				motivoFallo = "no se supero la preparacion";
+			}
+
+			// Informe del intento rechazado.
+			informe = construirInforme(
+					resultado,
+					true
+			);
+
 			return false;
 		}
+
 		ejecutar();
+
 		resultado = evaluar();
+
 		cerrar();
+
 		return true;
 	}
+
 
 	public InformeMision getInforme() {
 		return informe;
@@ -95,16 +134,19 @@ public abstract class Mision {
 	 */
 	protected boolean preparar() {
 
+
 		if (!AC.tieneRecursosDisponibles(
 				getCombustibleRequerido(),
 				getEnergiaRequerida())) {
 
-			registrar(
-					"recursos insuficientes para iniciar la mision"
-			);
+			motivoFallo =
+					"recursos insuficientes para iniciar la mision";
+
+			registrar(motivoFallo);
 
 			return false;
 		}
+
 
 		// Determinar el objetivo de esta mision.
 		objetivo = definirObjetivo();

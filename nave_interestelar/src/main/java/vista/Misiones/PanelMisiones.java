@@ -2,35 +2,42 @@
 package vista.Misiones;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.util.List;
 import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 
 import Controlador.Misiones.MisionController;
+
 import modelo.asistenteDeComandos.AsistenteDeComandos;
 import modelo.bitacora.Bitacora;
 import modelo.misiones.InformeMision;
 import modelo.nave.Nave;
 
 /**
- * Vista MVC para configurar y ejecutar misiones.
+ * Vista MVC para ejecutar misiones y consultar
+ * los informes generados durante la ejecucion.
  *
  * Invariantes:
  * - controller != null.
- * - Los controles graficos estan inicializados.
- * - La logica de negocio se delega al controlador.
+ * - El historial visual corresponde al controlador.
+ * - Los datos no se persisten en archivos.
  */
 public class PanelMisiones extends JPanel
         implements MisionController.MisionListener {
@@ -49,12 +56,16 @@ public class PanelMisiones extends JPanel
     private final JTextArea areaBitacora;
 
     private final JLabel lblEstadoNave;
+    private final JLabel lblCantidadInformes;
+
+    private final DefaultListModel<String> modeloHistorial;
+    private final JList<String> listaHistorial;
 
     /**
-     * Constructor original para pruebas independientes.
+     * Constructor para pruebas independientes.
      *
-     * Pre: asistente y bitacora != null.
-     * Post: usa la nave contenida en el asistente.
+     * Pre: asistente y bitacora no nulos.
+     * Post: utiliza la nave del asistente.
      */
     public PanelMisiones(
             AsistenteDeComandos asistente,
@@ -64,16 +75,19 @@ public class PanelMisiones extends JPanel
     }
 
     /**
-     * Constructor para la ventana principal.
+     * Construye el panel con historial.
      *
      * Pre:
      * - asistente != null.
      * - bitacora != null.
      *
      * Post:
-     * - Construye la vista.
-     * - Conecta el controlador con el proveedor de nave.
+     * - Inicializa los componentes.
+     * - Conecta las acciones al controlador.
+     * - Inicializa el historial vacio.
      *
+     * @param asistente asistente de comandos
+     * @param bitacora bitacora compartida
      * @param proveedorNave nave creada por el usuario
      */
     public PanelMisiones(
@@ -96,9 +110,9 @@ public class PanelMisiones extends JPanel
                 )
         );
 
-        // ==========================================
-        // CONTROLES DE MISIONES
-        // ==========================================
+        // =====================================
+        // PANEL SUPERIOR - MISIONES
+        // =====================================
 
         JPanel panelControles = new JPanel(
                 new GridLayout(2, 1, 6, 6)
@@ -116,41 +130,40 @@ public class PanelMisiones extends JPanel
                 }
         );
 
-        btnEjecutar = new JButton("Ejecutar misión");
+        btnEjecutar = new JButton(
+                "Ejecutar misión"
+        );
 
         lblEstadoNave = new JLabel(
                 "Estado: " + controller.obtenerEstadoNave()
         );
 
-        filaSeleccion.add(new JLabel("Misión:"));
+        filaSeleccion.add(
+                new JLabel("Misión:")
+        );
+
         filaSeleccion.add(comboMision);
         filaSeleccion.add(btnEjecutar);
         filaSeleccion.add(lblEstadoNave);
 
-        // ==========================================
-        // PARAMETROS DE MISION
-        // ==========================================
+        // =====================================
+        // PARAMETROS
+        // =====================================
 
         JPanel filaParametros = new JPanel(
                 new FlowLayout(FlowLayout.LEFT)
         );
 
         spinnerCombustible = new JSpinner(
-                new SpinnerNumberModel(
-                        10, 0, 50, 1
-                )
+                new SpinnerNumberModel(10, 0, 50, 1)
         );
 
         spinnerEnergia = new JSpinner(
-                new SpinnerNumberModel(
-                        10, 0, 50, 1
-                )
+                new SpinnerNumberModel(10, 0, 50, 1)
         );
 
         spinnerGemas = new JSpinner(
-                new SpinnerNumberModel(
-                        50, 20, 100, 5
-                )
+                new SpinnerNumberModel(50, 20, 100, 5)
         );
 
         filaParametros.add(
@@ -176,25 +189,77 @@ public class PanelMisiones extends JPanel
 
         add(panelControles, BorderLayout.NORTH);
 
-        // ==========================================
-        // AREA DE INFORME
-        // ==========================================
+        // =====================================
+        // HISTORIAL DE MISIONES
+        // =====================================
+
+        modeloHistorial =
+                new DefaultListModel<>();
+
+        listaHistorial =
+                new JList<>(modeloHistorial);
+
+        listaHistorial.setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION
+        );
+
+        JScrollPane scrollHistorial =
+                new JScrollPane(listaHistorial);
+
+        scrollHistorial.setBorder(
+                BorderFactory.createTitledBorder(
+                        "Historial de misiones"
+                )
+        );
+
+        scrollHistorial.setPreferredSize(
+                new Dimension(240, 250)
+        );
+
+        lblCantidadInformes = new JLabel(
+                "Informes guardados: 0"
+        );
+
+        JPanel panelHistorial = new JPanel(
+                new BorderLayout(5, 5)
+        );
+
+        panelHistorial.add(
+                scrollHistorial,
+                BorderLayout.CENTER
+        );
+
+        panelHistorial.add(
+                lblCantidadInformes,
+                BorderLayout.SOUTH
+        );
+
+        // =====================================
+        // INFORME SELECCIONADO
+        // =====================================
 
         areaInforme = new JTextArea(12, 40);
+
         areaInforme.setEditable(false);
+        areaInforme.setLineWrap(true);
+        areaInforme.setWrapStyleWord(true);
+
+        areaInforme.setText(
+                "Todavia no se ejecutaron misiones.\n"
+        );
 
         JScrollPane scrollInforme =
                 new JScrollPane(areaInforme);
 
         scrollInforme.setBorder(
                 BorderFactory.createTitledBorder(
-                        "Informe de misión"
+                        "Informe seleccionado"
                 )
         );
 
-        // ==========================================
-        // AREA DE BITACORA
-        // ==========================================
+        // =====================================
+        // BITACORA
+        // =====================================
 
         areaBitacora = new JTextArea(10, 40);
         areaBitacora.setEditable(false);
@@ -204,26 +269,40 @@ public class PanelMisiones extends JPanel
 
         scrollBitacora.setBorder(
                 BorderFactory.createTitledBorder(
-                        "Bitácora"
+                        "Bitácora de eventos"
                 )
         );
 
-        // ==========================================
-        // PANEL CENTRAL
-        // ==========================================
+        // =====================================
+        // DISTRIBUCION DE PANELES
+        // =====================================
 
-        JPanel panelCentro = new JPanel(
-                new GridLayout(2, 1, 8, 8)
+        JSplitPane divisionVertical = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                scrollInforme,
+                scrollBitacora
         );
 
-        panelCentro.add(scrollInforme);
-        panelCentro.add(scrollBitacora);
+        divisionVertical.setResizeWeight(0.55);
+        divisionVertical.setBorder(null);
 
-        add(panelCentro, BorderLayout.CENTER);
+        JSplitPane divisionHorizontal = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                panelHistorial,
+                divisionVertical
+        );
 
-        // ==========================================
+        divisionHorizontal.setResizeWeight(0.26);
+        divisionHorizontal.setBorder(null);
+
+        add(
+                divisionHorizontal,
+                BorderLayout.CENTER
+        );
+
+        // =====================================
         // LISTENERS
-        // ==========================================
+        // =====================================
 
         actualizarCamposPorMision();
 
@@ -240,45 +319,130 @@ public class PanelMisiones extends JPanel
                     (Integer) spinnerGemas.getValue()
             );
         });
+
+        // Mostrar el informe elegido del historial.
+        listaHistorial.addListSelectionListener(e -> {
+
+            if (!e.getValueIsAdjusting()) {
+
+                int indice =
+                        listaHistorial.getSelectedIndex();
+
+                List<InformeMision> informes =
+                        controller.obtenerHistorial();
+
+                if (indice >= 0
+                        && indice < informes.size()) {
+
+                    mostrarInforme(
+                            informes.get(indice)
+                    );
+                }
+            }
+        });
     }
 
     /**
      * Actualiza el estado visual de la nave.
      *
      * Pre: panel inicializado.
-     *
-     * Post:
-     * - Obtiene el estado de la nave seleccionada.
-     * - Actualiza la etiqueta correspondiente.
+     * Post: muestra el estado actual sin modificarlo.
      */
     public void refrescarEstadoNave() {
 
         lblEstadoNave.setText(
-                "Estado: " + controller.obtenerEstadoNave()
+                "Estado: "
+                        + controller.obtenerEstadoNave()
         );
     }
 
     /**
-     * Activa exclusivamente los parametros relevantes
-     * de la mision seleccionada.
+     * Habilita solo los parametros relevantes.
      *
      * Pre: comboMision inicializado.
-     * Post: habilita y deshabilita campos.
+     * Post: actualiza los controles habilitados.
      */
     private void actualizarCamposPorMision() {
 
-        int idx = comboMision.getSelectedIndex();
+        int indice =
+                comboMision.getSelectedIndex();
 
-        spinnerCombustible.setEnabled(idx == 0);
-        spinnerEnergia.setEnabled(idx == 0);
-        spinnerGemas.setEnabled(idx == 1);
+        spinnerCombustible.setEnabled(
+                indice == 0
+        );
+
+        spinnerEnergia.setEnabled(
+                indice == 0
+        );
+
+        spinnerGemas.setEnabled(
+                indice == 1
+        );
     }
 
     /**
-     * Notifica el comienzo de una mision.
+     * Muestra los datos de un informe.
+     *
+     * Pre: informe != null.
+     *
+     * Post:
+     * - Actualiza el texto del panel.
+     * - No modifica el historial.
+     * - No modifica la nave.
+     *
+     * @param informe informe a mostrar
+     */
+    private void mostrarInforme(
+            InformeMision informe) {
+
+        StringBuilder texto =
+                new StringBuilder();
+
+        texto.append("Misión: ")
+                .append(informe.getMisionEjecutada())
+                .append("\n");
+
+        texto.append("Resultado: ")
+                .append(informe.getResultado())
+                .append("\n");
+
+        texto.append("Balance de recursos: ")
+                .append(informe.getRecursosConsumidos())
+                .append("\n");
+
+        texto.append("Estado final de la nave: ")
+                .append(informe.getEstadoNave())
+                .append("\n");
+
+        texto.append("Observaciones: ")
+                .append(informe.getObservaciones())
+                .append("\n\n");
+
+        texto.append("Acciones principales:\n");
+
+        for (String accion :
+                informe.getAccionesPrincipales()) {
+
+            texto.append(" - ")
+                    .append(accion)
+                    .append("\n");
+        }
+
+        areaInforme.setText(
+                texto.toString()
+        );
+
+        areaInforme.setCaretPosition(0);
+    }
+
+    /**
+     * Notifica el inicio de una mision.
      *
      * Pre: la mision fue validada.
-     * Post: deshabilita el boton y actualiza el texto.
+     *
+     * Post:
+     * - Deshabilita el boton.
+     * - Conserva el historial.
      */
     @Override
     public void onMisionIniciada() {
@@ -291,15 +455,17 @@ public class PanelMisiones extends JPanel
     }
 
     /**
-     * Notifica la finalizacion de una mision.
+     * Actualiza el panel al finalizar una mision.
      *
-     * Pre: el controlador termino su ejecucion.
+     * Pre:
+     * - El controlador termino su trabajo.
+     * - La llamada se realiza en el EDT.
      *
      * Post:
-     * - Muestra el informe recibido.
-     * - Muestra la bitacora.
-     * - Actualiza recursos.
-     * - Habilita nuevamente el boton.
+     * - Incorpora el informe al historial visual.
+     * - Muestra el informe mas reciente.
+     * - Actualiza bitacora y recursos.
+     * - Habilita el boton.
      */
     @Override
     public void onMisionFinalizada(
@@ -312,81 +478,73 @@ public class PanelMisiones extends JPanel
                 "Estado: " + estadoNave
         );
 
-        StringBuilder sb = new StringBuilder();
+        // =====================================
+        // AGREGAR INFORME AL HISTORIAL
+        // =====================================
 
-        sb.append("¿Pasó la preparación?: ")
-                .append(pasoPreparacion)
-                .append("\n");
+        if (informe != null) {
 
-        if (informe == null) {
+            int numero =
+                    modeloHistorial.size() + 1;
 
-            sb.append(
-                    "Informe: no se generó "
-                            + "(la misión no llegó a evaluarse).\n"
+            modeloHistorial.addElement(
+                    numero + ". "
+                            + informe.getMisionEjecutada()
+                            + " - "
+                            + informe.getResultado()
+            );
+
+            lblCantidadInformes.setText(
+                    "Informes guardados: " + numero
+            );
+
+            // Seleccionar automaticamente el ultimo.
+            listaHistorial.setSelectedIndex(
+                    numero - 1
+            );
+
+            listaHistorial.ensureIndexIsVisible(
+                    numero - 1
             );
 
         } else {
 
-            sb.append("Misión ejecutada: ")
-                    .append(informe.getMisionEjecutada())
-                    .append("\n");
-
-            sb.append("Resultado: ")
-                    .append(informe.getResultado())
-                    .append("\n");
-
-            sb.append("Recursos: ")
-                    .append(informe.getRecursosConsumidos())
-                    .append("\n");
-
-            sb.append("Estado final de la nave: ")
-                    .append(informe.getEstadoNave())
-                    .append("\n");
-
-            sb.append("Observaciones: ")
-                    .append(informe.getObservaciones())
-                    .append("\n");
-
-            sb.append("Acciones principales:\n");
-
-            for (String accion :
-                    informe.getAccionesPrincipales()) {
-
-                sb.append("  - ")
-                        .append(accion)
-                        .append("\n");
-            }
+            areaInforme.setText(
+                    "La misión no pudo generar un informe.\n"
+            );
         }
 
-        areaInforme.setText(sb.toString());
-
-        // ==========================================
+        // =====================================
         // ACTUALIZAR BITACORA
-        // ==========================================
+        // =====================================
 
-        StringBuilder sbBitacora = new StringBuilder();
+        StringBuilder eventos =
+                new StringBuilder();
 
         for (String evento : eventosBitacora) {
 
-            sbBitacora.append(evento)
+            eventos.append(evento)
                     .append("\n");
         }
 
         areaBitacora.setText(
-                sbBitacora.toString()
+                eventos.toString()
         );
+
+        areaBitacora.setCaretPosition(0);
 
         btnEjecutar.setEnabled(true);
     }
 
     /**
-     * Informa un error de validacion.
+     * Informa errores de validacion.
      *
      * Pre: mensaje != null.
-     * Post: informa el problema al usuario.
+     * Post: muestra una advertencia al usuario.
      */
     @Override
-    public void onErrorParametro(String mensaje) {
+    public void onErrorParametro(
+            String mensaje) {
 
         JOptionPane.showMessageDialog(
                 this,

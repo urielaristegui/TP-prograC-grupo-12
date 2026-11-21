@@ -4,6 +4,7 @@ package Controlador.Misiones;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+
 import javax.swing.SwingUtilities;
 
 import modelo.asistenteDeComandos.AsistenteDeComandos;
@@ -18,11 +19,15 @@ import modelo.nave.Nave;
 /**
  * Controlador MVC del ciclo de misiones.
  *
+ * Conserva los informes generados durante la ejecucion
+ * del programa, sin persistirlos.
+ *
  * Invariantes:
- * - asistente, bitacora y listener no son null.
- * - Solo se crea un hilo de mision por solicitud validada.
- * - Si se proporciona un proveedor, obtiene la nave real
- *   creada por el usuario, no la nave temporal del inicio.
+ * - asistente != null.
+ * - bitacora != null.
+ * - listener != null.
+ * - Solo una mision puede estar ejecutandose.
+ * - El historial contiene informes no nulos.
  */
 public class MisionController {
 
@@ -45,14 +50,17 @@ public class MisionController {
     private final MisionListener listener;
     private final Supplier<Nave> proveedorNave;
 
-    private boolean ejecutando;
+    // Historial en memoria. No se persiste.
+    private final List<InformeMision> historial =
+            new ArrayList<>();
+
+    private volatile boolean ejecutando;
 
     /**
-     * Constructor original, conservado para pruebas
-     * y paneles existentes.
+     * Constructor para pruebas independientes.
      *
-     * Pre: argumentos no null.
-     * Post: opera con la nave del asistente.
+     * Pre: argumentos no nulos.
+     * Post: utiliza la nave del asistente.
      */
     public MisionController(
             AsistenteDeComandos asistente,
@@ -71,11 +79,8 @@ public class MisionController {
      * - listener != null.
      *
      * Post:
-     * - Conserva el proveedor de nave.
-     * - Las misiones utilizaran la nave creada.
-     *
-     * @param proveedorNave devuelve la nave creada
-     *                      o null antes de crearla
+     * - Conserva las dependencias.
+     * - Utiliza el proveedor de nave si existe.
      */
     public MisionController(
             AsistenteDeComandos asistente,
@@ -99,15 +104,32 @@ public class MisionController {
     }
 
     /**
-     * Obtiene el estado de la nave seleccionada.
+     * Devuelve el historial de informes.
      *
      * Pre: ninguna.
      *
      * Post:
-     * - Si hay nave creada, sincroniza el asistente.
+     * - Devuelve una copia inmodificable.
+     * - Mantiene el orden cronologico.
+     * - No modifica los informes originales.
+     *
+     * @return informes de esta ejecucion
+     */
+    public List<InformeMision> obtenerHistorial() {
+
+        return List.copyOf(historial);
+    }
+
+    /**
+     * Consulta el estado de la nave seleccionada.
+     *
+     * Pre: ninguna.
+     *
+     * Post:
+     * - Sincroniza el asistente cuando corresponde.
      * - No modifica los recursos.
      *
-     * @return descripcion del estado actual
+     * @return descripcion de la nave
      */
     public String obtenerEstadoNave() {
 
@@ -129,26 +151,31 @@ public class MisionController {
      * Solicita ejecutar una mision.
      *
      * Pre:
-     * - Parametros de mision validos.
-     * - Nave creada y tripulada cuando se usa
-     *   el proveedor de la ventana principal.
+     * - Tipo y parametros validos.
+     * - Nave creada y operativa.
+     * - Tripulacion valida cuando se utiliza
+     *   el proveedor de la interfaz principal.
      *
      * Post:
-     * - Valida la nave.
-     * - Crea una mision del tipo solicitado.
+     * - Rechaza misiones simultaneas.
      * - Ejecuta la mision fuera del EDT.
-     * - Notifica a la vista el resultado.
+     * - Guarda el informe generado.
+     * - Notifica a la vista en el EDT.
      *
      * @param indiceMision tipo de mision
-     * @param combustible combustible a transferir en M-01
-     * @param energia energia a transferir en M-01
-     * @param gemas recompensa de M-02
+     * @param combustible transferencia para M-01
+     * @param energia transferencia para M-01
+     * @param gemas recompensa para M-02
      */
     public void ejecutarMision(
             int indiceMision,
             int combustible,
             int energia,
             int gemas) {
+
+        // =====================================
+        // VALIDAR EJECUCION SIMULTANEA
+        // =====================================
 
         if (ejecutando) {
 
@@ -159,9 +186,9 @@ public class MisionController {
             return;
         }
 
-        // ==========================================
-        // SINCRONIZAR NAVE DEL JUGADOR
-        // ==========================================
+        // =====================================
+        // VALIDAR NAVE CREADA
+        // =====================================
 
         if (proveedorNave != null) {
 
@@ -170,7 +197,8 @@ public class MisionController {
             if (naveActual == null) {
 
                 listener.onErrorParametro(
-                        "Primero crea una nave en Configuracion & Creacion"
+                        "Primero crea una nave en "
+                                + "Configuracion & Creacion"
                 );
 
                 return;
@@ -179,7 +207,8 @@ public class MisionController {
             if (naveActual.estaDestruida()) {
 
                 listener.onErrorParametro(
-                        "La nave esta destruida y no puede iniciar misiones"
+                        "La nave esta destruida "
+                                + "y no puede iniciar misiones"
                 );
 
                 return;
@@ -198,9 +227,9 @@ public class MisionController {
             asistente.setNave(naveActual);
         }
 
-        // ==========================================
+        // =====================================
         // CREAR MISION
-        // ==========================================
+        // =====================================
 
         final Mision mision;
 
@@ -215,14 +244,16 @@ public class MisionController {
 
         } catch (IllegalArgumentException ex) {
 
-            listener.onErrorParametro(ex.getMessage());
+            listener.onErrorParametro(
+                    ex.getMessage()
+            );
 
             return;
         }
 
-        // ==========================================
-        // EJECUTAR EN HILO INDEPENDIENTE
-        // ==========================================
+        // =====================================
+        // EJECUTAR FUERA DEL EDT
+        // =====================================
 
         ejecutando = true;
 
@@ -251,15 +282,26 @@ public class MisionController {
             final String mensajeError = error;
 
             final List<String> eventos =
-                    new ArrayList<>(bitacora.getRegistro());
+                    new ArrayList<>(
+                            bitacora.getRegistro()
+                    );
 
             final String estado =
                     asistente.snapshotEstadoNave();
 
-            // Actualizar la interfaz en el EDT.
+            // =====================================
+            // ACTUALIZAR SWING
+            // =====================================
+
             SwingUtilities.invokeLater(() -> {
 
                 ejecutando = false;
+
+                // NUEVO: guardar el informe.
+                if (informeFinal != null) {
+
+                    historial.add(informeFinal);
+                }
 
                 listener.onMisionFinalizada(
                         resultado,
@@ -271,7 +313,8 @@ public class MisionController {
                 if (mensajeError != null) {
 
                     listener.onErrorParametro(
-                            "La mision fallo: " + mensajeError
+                            "La mision fallo: "
+                                    + mensajeError
                     );
                 }
             });
@@ -283,12 +326,12 @@ public class MisionController {
     }
 
     /**
-     * Construye la mision seleccionada.
+     * Construye la mision correspondiente.
      *
-     * Pre: indiceMision entre 0 y 2.
-     * Post: devuelve una nueva instancia de mision.
+     * Pre: indice valido.
+     * Post: devuelve una nueva instancia.
      *
-     * @return mision correspondiente
+     * @return mision seleccionada
      */
     private Mision crearMision(
             int indiceMision,
