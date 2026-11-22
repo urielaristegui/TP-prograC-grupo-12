@@ -42,7 +42,7 @@ public class Bitacora {
      * <b>pre:</b> observador != null.<br>
      * <b>post:</b> se agrega el observador a la lista si no estaba suscrito.<br>
      *
-     * @param observador objeto que implementa IObservadorBitacora.
+     * @param observador objeto que implementa IObservadorBitacora. observador != null.
      * @throws IllegalArgumentException si observador es null.
      */
     public void agregarObservador(IObservadorBitacora observador) {
@@ -59,7 +59,7 @@ public class Bitacora {
      * <b>pre:</b> observador != null.<br>
      * <b>post:</b> se quita el observador de la lista.<br>
      *
-     * @param observador objeto a desuscribir.
+     * @param observador objeto a desuscribir. observador != null.
      */
     public void eliminarObservador(IObservadorBitacora observador) {
         observadores.remove(observador);
@@ -70,7 +70,7 @@ public class Bitacora {
      * <b>pre:</b> mensaje != null.<br>
      * <b>post:</b> ejecuta actualizarBitacora en cada observador de la lista.<br>
      *
-     * @param mensaje cadena de texto a notificar.
+     * @param mensaje cadena de texto a notificar. mensaje != null.
      */
     public void notificarObservadores(String mensaje) {
         for (IObservadorBitacora obs : observadores) {
@@ -83,7 +83,7 @@ public class Bitacora {
      * <b>pre:</b> mensaje != null && !mensaje.trim().isEmpty().<br>
      * <b>post:</b> se agrega el mensaje al registro y se llama a notificarObservadores.<br>
      *
-     * @param mensaje texto descriptivo del evento.
+     * @param mensaje texto descriptivo del evento. mensaje != null && !mensaje.trim().isEmpty().
      * @throws IllegalArgumentException si mensaje es null o vacio.
      */
     public void registrar(String mensaje) {
@@ -96,8 +96,8 @@ public class Bitacora {
 
     /**
      * retorna el registro completo de la bitacora.<br>
-     * <b>pre:</b> ninguna.<br>
-     * <b>post:</b> devuelve la referencia a la lista de mensajes registrados.<br>
+     * <b>pre:</b> la bitacora esta inicializada.<br>
+     * <b>post:</b> devuelve la referencia a la lista de mensajes registrados en orden temporal.<br>
      *
      * @return lista de mensajes acumulados en la bitacora.
      */

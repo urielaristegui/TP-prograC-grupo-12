@@ -1,0 +1,40 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
+skinparam packageStyle rect
+
+package "modelo.UniversoAlterno (Concurrencia / Monitor)" {
+
+    class PlataformaDeCarga <<Monitor / Recurso Compartido>> {
+        - bateriasDisponibles: int
+        - capacidadMaxima: int
+        + synchronized depositarBateria(generadoraId: String): void
+        + synchronized retirarBateria(naveId: String): void
+    }
+
+    class GeneradoraDeEnergia <<Productor>> implements java.lang.Runnable {
+        - plataforma: PlataformaDeCarga
+        + run(): void
+    }
+
+    class NaveConsumidora <<Consumidor>> implements java.lang.Runnable {
+        - plataforma: PlataformaDeCarga
+        + run(): void
+    }
+}
+
+interface java.lang.Runnable {
+    + run(): void
+}
+
+GeneradoraDeEnergia --> "1" PlataformaDeCarga : deposita en
+NaveConsumidora --> "1" PlataformaDeCarga : retira de
+
+note right of PlataformaDeCarga
+  **Patrón Monitor (Exclusión Mutua y Coordinación)**
+  • 'depositarBateria': si está llena -> wait(). Al agregar -> notifyAll().
+  • 'retirarBateria': si está vacía -> wait(). Al retirar -> notifyAll().
+end note
+
+@enduml

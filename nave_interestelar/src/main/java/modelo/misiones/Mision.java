@@ -8,19 +8,9 @@ import modelo.destinoytablero.Posicion;
 import modelo.elementos.ElementoDelUniverso;
 
 /**
- * Ciclo de vida de una misión sobre el tablero real (Template Method).
- *
- * director() fija el orden preparar -> ejecutar -> evaluar -> cerrar y no se
- * puede redefinir. Las subclases sólo aportan lo que cambia entre misiones:
- * costos de despegue, objetivo, verificación en destino y acción final.
- *
- * La misión sólo conoce al AsistenteDeComandos: nunca toca Nave ni Tablero
- * directamente. Cómo se mueve la nave en cada turno (salto normal o Warp) lo
- * deciden las reglas de navegación, a través del asistente.
- *
- * NOTA: director() contiene un bucle con pausas (Thread.sleep). Cuando haya
- * interfaz Swing hay que invocarlo desde un hilo propio, nunca desde el hilo
- * de eventos, o la pantalla se congela.
+ * ciclo de vida de una mision sobre el tablero real aplicando el patron template method.<br>
+ * coordina preparar, ejecutar, evaluar y cerrar a traves de AsistenteDeComandos.<br>
+ * <b>invariante:</b> PAUSA_MS >= 0 && LIMITE_TURNOS > 0 && acciones != null && ruta != null && recorrido != null.
  */
 public abstract class Mision {
 
@@ -45,6 +35,13 @@ public abstract class Mision {
 	private int desgasteInicial;
 	private int gemasInicial;
 
+	/**
+	 * construye una mision asociada a un asistente de comandos.<br>
+	 * <b>pre:</b> ninguna.<br>
+	 * <b>post:</b> inicializa el atributo AC con la instancia recibida.<br>
+	 *
+	 * @param AC asistente de comandos utilizado para coordinar la mision.
+	 */
 	public Mision(AsistenteDeComandos AC) {
 		this.AC = AC;
 	}
@@ -53,21 +50,12 @@ public abstract class Mision {
 	// Template Method
 	// ------------------------------------------------------------------
 
-
 	/**
-	 * Ejecuta el ciclo de vida de la mision.
+	 * ejecuta el ciclo de vida de la mision en el orden preparar, ejecutar, evaluar y cerrar.<br>
+	 * <b>pre:</b> AC != null, nave y tablero disponibles.<br>
+	 * <b>post:</b> si supera preparar(), ejecuta ejecutar(), evaluar() y cerrar() y retorna true; si falla la preparacion, registra el fallo sin consumir recursos, genera el informe y retorna false.<br>
 	 *
-	 * Pre:
-	 * - El asistente esta inicializado.
-	 * - La nave y el tablero estan disponibles.
-	 *
-	 * Post:
-	 * - Si supera la preparacion, ejecuta las cuatro fases.
-	 * - Si no la supera, registra un informe de fallo
-	 *   sin consumir recursos.
-	 * - Conserva el orden del Template Method.
-	 *
-	 * @return true si supero la preparacion
+	 * @return true si se supero la preparacion, false en caso contrario.
 	 */
 	public final boolean director() {
 
@@ -107,7 +95,13 @@ public abstract class Mision {
 		return true;
 	}
 
-
+	/**
+	 * devuelve el informe de la mision construido o actualizado hasta el momento.<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna el atributo informe sin modificar el estado.<br>
+	 *
+	 * @return informe de la mision o null si aun no fue generado.
+	 */
 	public InformeMision getInforme() {
 		return informe;
 	}
@@ -116,21 +110,12 @@ public abstract class Mision {
 	// Fase 1: preparar
 	// ------------------------------------------------------------------
 
-
 	/**
-	 * Prepara la ejecucion de la mision.
+	 * prepara la ejecucion de la mision verificando recursos, definiendo el objetivo y calculando la ruta.<br>
+	 * <b>pre:</b> AC != null, nave y tablero disponibles.<br>
+	 * <b>post:</b> si hay recursos suficientes, fija objetivo, lo publica, calcula y almacena ruta, registra el origen en recorrido y retorna true; si faltan recursos, registra el motivo y retorna false.<br>
 	 *
-	 * Pre:
-	 * - AsistenteDeComandos inicializado.
-	 * - Nave y tablero disponibles.
-	 *
-	 * Post:
-	 * - Verifica los recursos iniciales.
-	 * - Determina el objetivo.
-	 * - Publica el objetivo para actualizar el tablero.
-	 * - Calcula y almacena la ruta.
-	 *
-	 * @return true si pudo prepararse
+	 * @return true si pudo prepararse, false en caso contrario.
 	 */
 	protected boolean preparar() {
 
@@ -180,12 +165,14 @@ public abstract class Mision {
 		return true;
 	}
 
-
 	/**
-	 * Ruta nominal: la que seguirían las reglas de navegación si no hubiera
-	 * obstáculos (un paso ortogonal por vez, primero sobre el eje de mayor
-	 * distancia). No incluye el origen. El recorrido real puede diferir:
-	 * los obstáculos y el salto Warp las modifican.
+	 * calcula una ruta nominal ortogonal paso a paso desde origen hasta destino sin considerar obstaculos.<br>
+	 * <b>pre:</b> origen != null y destino != null.<br>
+	 * <b>post:</b> retorna la lista de posiciones intermedias hasta destino sin incluir origen.<br>
+	 *
+	 * @param origen posicion inicial.
+	 * @param destino posicion final.
+	 * @return lista de posiciones de la ruta nominal.
 	 */
 	private List<Posicion> calcularRuta(Posicion origen, Posicion destino) {
 		List<Posicion> pasos = new ArrayList<Posicion>();
@@ -208,22 +195,10 @@ public abstract class Mision {
 	// Fase 2: ejecutar
 	// ------------------------------------------------------------------
 
-
 	/**
-	 * Ejecuta la travesia de la mision.
-	 *
-	 * Pre:
-	 * - La mision fue preparada correctamente.
-	 * - Existe una nave operativa.
-	 *
-	 * Post:
-	 * - Aplica el consumo de despegue.
-	 * - Ejecuta los turnos de navegacion.
-	 * - Finaliza si la nave alcanza el objetivo,
-	 *   se destruye o falla la mision.
-	 * - Completa el enfriamiento del Warp incluso
-	 *   cuando el salto termina en el objetivo.
-	 * - Verifica los recursos requeridos en destino.
+	 * ejecuta el consumo inicial y el ciclo de travesia por turnos hasta llegar, fallar o destruir la nave.<br>
+	 * <b>pre:</b> la mision fue preparada correctamente y existe una nave operativa.<br>
+	 * <b>post:</b> aplica el consumo de despegue, ejecuta turnos de nave y tablero, procesa enfriamiento pendiente si corresponde y verifica las condiciones finales y en destino.<br>
 	 */
 	protected void ejecutar() {
 
@@ -326,7 +301,11 @@ public abstract class Mision {
 		}
 	}
 
-
+	/**
+	 * ejecuta el turno de la nave inspeccionando su casilla actual, interactuando si hay elemento y avanzando hacia el objetivo.<br>
+	 * <b>pre:</b> AC != null y objetivo != null.<br>
+	 * <b>post:</b> si hay elemento en la posicion actual interactua con el; si la nave sigue operativa intenta avanzar hacia objetivo y actualiza recorrido y llegoAlDestino si se desplazo.<br>
+	 */
 	private void turnoDeLaNave() {
 		ElementoDelUniverso presente = AC.inspeccionarPosicion();
 		if (presente != null) {
@@ -350,6 +329,11 @@ public abstract class Mision {
 		}
 	}
 
+	/**
+	 * pausa brevemente la ejecucion entre turnos para permitir la observacion visual.<br>
+	 * <b>pre:</b> PAUSA_MS >= 0.<br>
+	 * <b>post:</b> espera PAUSA_MS milisegundos; si el hilo es interrumpido, restaura el estado de interrupcion y registra motivoFallo.<br>
+	 */
 	private void pausar() {
 		try {
 			Thread.sleep(PAUSA_MS);
@@ -363,20 +347,12 @@ public abstract class Mision {
 	// Fase 3: evaluar (arma el informe final)
 	// ------------------------------------------------------------------
 
-
 	/**
-	 * Evalua el resultado de la travesia.
+	 * evalua el resultado de la mision y construye el informe correspondiente.<br>
+	 * <b>pre:</b> la fase ejecutar finalizo y se registraron los recursos iniciales.<br>
+	 * <b>post:</b> retorna EXITOSA si motivoFallo esta vacio o FALLIDA en caso contrario, registra el recorrido y la evaluacion y actualiza informe.<br>
 	 *
-	 * Pre:
-	 * - La fase ejecutar finalizo.
-	 * - Se registraron los recursos iniciales.
-	 *
-	 * Post:
-	 * - Determina si la mision fue exitosa o fallida.
-	 * - Genera un informe provisional.
-	 * - Mantiene el orden del Template Method.
-	 *
-	 * @return resultado de la evaluacion
+	 * @return resultado de la evaluacion de la mision.
 	 */
 	protected ResultadoMision evaluar() {
 
@@ -398,21 +374,13 @@ public abstract class Mision {
 	}
 
 	/**
-	 * Construye el informe con los recursos actuales.
+	 * construye un informe inmutable con el balance de recursos respecto al inicio de la mision.<br>
+	 * <b>pre:</b> res != null y se registraron los recursos iniciales.<br>
+	 * <b>post:</b> retorna un InformeMision con el balance de combustible, energia, desgaste y gemas sin modificar recursos.<br>
 	 *
-	 * Pre:
-	 * - Se conocen los recursos iniciales.
-	 * - res != null.
-	 *
-	 * Post:
-	 * - Devuelve un InformeMision inmutable.
-	 * - Incluye combustible, energia, desgaste
-	 *   y gemas.
-	 * - No modifica los recursos.
-	 *
-	 * @param res resultado de la mision
-	 * @param finalizado indica si ya se aplico el cierre
-	 * @return informe con el balance actualizado
+	 * @param res resultado de la mision.
+	 * @param finalizado indica si la mision ya completo su cierre.
+	 * @return informe construido con el balance actual.
 	 */
 	private InformeMision construirInforme(
 			ResultadoMision res,
@@ -464,15 +432,38 @@ public abstract class Mision {
 		);
 	}
 
-
+	/**
+	 * formatea un entero anteponiendo el signo '+' si es mayor o igual a cero.<br>
+	 * <b>pre:</b> ninguna.<br>
+	 * <b>post:</b> retorna la representacion con signo del valor entero.<br>
+	 *
+	 * @param valor numero entero a formatear.
+	 * @return cadena con signo antepuesto si corresponde.
+	 */
 	private static String signado(int valor) {
 		return (valor >= 0 ? "+" : "") + valor;
 	}
 
+	/**
+	 * formatea una posicion como par ordenado "(x,y)".<br>
+	 * <b>pre:</b> p != null.<br>
+	 * <b>post:</b> retorna "(x,y)" con las coordenadas de p.<br>
+	 *
+	 * @param p posicion a formatear.
+	 * @return representacion textual de la posicion.
+	 */
 	private static String texto(Posicion p) {
 		return "(" + p.getX() + "," + p.getY() + ")";
 	}
 
+	/**
+	 * formatea una secuencia de posiciones separadas por flechas.<br>
+	 * <b>pre:</b> puntos != null y sus elementos no son nulos.<br>
+	 * <b>post:</b> retorna las posiciones concatenadas con " -> ".<br>
+	 *
+	 * @param puntos lista de posiciones a formatear.
+	 * @return cadena con el recorrido formateado.
+	 */
 	private static String formatear(List<Posicion> puntos) {
 		StringBuilder camino = new StringBuilder();
 		for (Posicion p : puntos) {
@@ -488,21 +479,10 @@ public abstract class Mision {
 	// Fase 4: cerrar (impacta lo ganado o entregado)
 	// ------------------------------------------------------------------
 
-
 	/**
-	 * Aplica el cierre de una mision.
-	 *
-	 * Pre:
-	 * - La evaluacion fue realizada.
-	 * - resultado != null.
-	 *
-	 * Post:
-	 * - Si la mision fue exitosa, aplica los
-	 *   recursos entregados o ganados.
-	 * - Si el cierre falla, registra el error.
-	 * - Verifica que la nave siga operativa.
-	 * - Actualiza el informe con el balance
-	 *   definitivo de la mision.
+	 * aplica el cierre de la mision si fue exitosa, verifica el estado de la nave y actualiza el informe final.<br>
+	 * <b>pre:</b> resultado != null y se realizo la evaluacion previa.<br>
+	 * <b>post:</b> si resultado es EXITOSA invoca aplicarCierre() (o marca FALLIDA si ocurre error o la nave queda destruida) y reconstruye informe como finalizado.<br>
 	 */
 	protected void cerrar() {
 
@@ -564,7 +544,13 @@ public abstract class Mision {
 	// Utilidad
 	// ------------------------------------------------------------------
 
-	/** Guarda la acción en la lista propia de la misión y en la Bitácora. */
+	/**
+	 * registra una accion en la lista interna de la mision y en la bitacora.<br>
+	 * <b>pre:</b> acciones != null y AC != null.<br>
+	 * <b>post:</b> agrega accion a acciones y registra el evento prefijado en la bitacora.<br>
+	 *
+	 * @param accion descripcion de la accion o evento ocurrido.
+	 */
 	protected void registrar(String accion) {
 		acciones.add(accion);
 		AC.registrarEvento(getClass().getSimpleName() + ": " + accion);
@@ -574,19 +560,64 @@ public abstract class Mision {
 	// Lo que cambia en cada misión
 	// ------------------------------------------------------------------
 
+	/**
+	 * devuelve el combustible requerido para iniciar y despegar en la mision.<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna la cantidad de combustible requerida.<br>
+	 *
+	 * @return combustible requerido.
+	 */
 	protected abstract int getCombustibleRequerido();
+
+	/**
+	 * devuelve la energia requerida para iniciar y despegar en la mision.<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna la cantidad de energia requerida.<br>
+	 *
+	 * @return energia requerida.
+	 */
 	protected abstract int getEnergiaRequerida();
+
+	/**
+	 * devuelve el desgaste generado al despegar en la mision.<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna la cantidad de desgaste generada.<br>
+	 *
+	 * @return desgaste generado.
+	 */
 	protected abstract int getDesgasteGenerado();
 
-	/** Posición a la que hay que llegar. */
+	/**
+	 * determina la posicion objetivo de la mision.<br>
+	 * <b>pre:</b> AC != null y tablero disponible.<br>
+	 * <b>post:</b> retorna la posicion objetivo a alcanzar.<br>
+	 *
+	 * @return posicion objetivo.
+	 */
 	protected abstract Posicion definirObjetivo();
 
-	/** Al llegar: ¿conserva la nave lo que debe entregar? */
+	/**
+	 * verifica si al llegar al destino la nave cumple las condiciones requeridas para cerrar la mision.<br>
+	 * <b>pre:</b> la nave alcanzo la posicion objetivo.<br>
+	 * <b>post:</b> retorna true si se cumplen las condiciones en destino, false en caso contrario.<br>
+	 *
+	 * @return true si es valido cerrar la mision en destino, false en caso contrario.
+	 */
 	protected abstract boolean verificarEnDestino();
 
-	/** Impacto definitivo sobre la nave al completar la misión. */
+	/**
+	 * aplica el efecto definitivo del cierre de la mision sobre la nave o el entorno.<br>
+	 * <b>pre:</b> la mision fue evaluada como EXITOSA y se verifico el destino.<br>
+	 * <b>post:</b> impacta la entrega, recoleccion o reparacion correspondiente.<br>
+	 */
 	protected abstract void aplicarCierre();
 
-	/** Texto breve de lo que hace aplicarCierre(), para informe y bitácora. */
+	/**
+	 * devuelve una descripcion breve de la accion realizada en aplicarCierre().<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna el texto descriptivo del cierre.<br>
+	 *
+	 * @return descripcion del cierre.
+	 */
 	protected abstract String describirCierre();
 }

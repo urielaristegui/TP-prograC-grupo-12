@@ -1,5 +1,5 @@
 
-package vista;
+package vista.Bitacora;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

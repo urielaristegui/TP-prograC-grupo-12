@@ -1,0 +1,57 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
+skinparam packageStyle rect
+
+
+
+    class UsuarioDTO <<DTO>> {
+        - nombreUsuario: String
+        - contrasena: String
+        + UsuarioDTO(nombreUsuario: String, contrasena: String)
+        + getNombreUsuario(): String
+        + getContrasena(): String
+        + equals(o: Object): boolean
+        + hashCode(): int
+    }
+
+    interface UsuarioDAO <<interface>> {
+        + registrar(usuario: UsuarioDTO): boolean
+        + buscarPorNombreUsuario(nombreUsuario: String): Optional<UsuarioDTO>
+        + autenticar(nombreUsuario: String, contrasena: String): boolean
+    }
+
+    class ArchivoUsuarioDao implements UsuarioDAO {
+        - SEPARADOR: String = ";"
+        - archivoUsuarios: Path
+        + ArchivoUsuarioDao()
+        + ArchivoUsuarioDao(archivoUsuarios: Path)
+        + synchronized registrar(usuario: UsuarioDTO): boolean
+        + synchronized buscarPorNombreUsuario(nombreUsuario: String): Optional<UsuarioDTO>
+        + synchronized autenticar(nombreUsuario: String, contrasena: String): boolean
+        - codificar(texto: String): String
+        - decodificar(base64: String): String
+    }
+
+    class AutenticacionService {
+        - usuarioDAO: UsuarioDAO
+        - usuarioActual: UsuarioDTO
+        + AutenticacionService(usuarioDAO: UsuarioDAO)
+        + registrarUsuario(nombreUsuario: String, contrasena: String): boolean
+        + iniciarSesion(nombreUsuario: String, contrasena: String): boolean
+        + cerrarSesion(): void
+        + getUsuarioActual(): Optional<UsuarioDTO>
+    }
+
+
+' Relaciones
+ArchivoUsuarioDao ..|> UsuarioDAO : implementa
+AutenticacionService --> "1" UsuarioDAO : usa (DIP)
+AutenticacionService o--> "0..1" UsuarioDTO : gestiona usuarioActual
+UsuarioDAO ..> UsuarioDTO : transfiere / recibe
+ArchivoUsuarioDao ..> UsuarioDTO : lee / escribe (datos_usuarios.txt)
+
+
+
+@enduml

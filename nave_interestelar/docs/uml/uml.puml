@@ -1,469 +1,285 @@
-
 @startuml
 skinparam classAttributeIconSize 0
-left to right direction
+skinparam monochrome false
+skinparam style strictuml
+skinparam packageStyle rect
 
-' ==========================================
-' PAQUETE: BITÁCORA (Singleton)
-' ==========================================
-package modelo.bitacora {
-    class Bitacora <<Singleton>> {
-        - static Bitacora instancia
-        - ArrayList<String> registro
-        - Bitacora()
-        + static Bitacora getInstance()
-        + void registrar(evento: String)
-        + ArrayList<String> getRegistro()
-    }
-}
+package "1. modelo.nave (Factory & Double Dispatch)" {
 
-' ==========================================
-' PAQUETE: MOTOR WARP (Patrón State)
-' ==========================================
-package modelo.motorWarp {
-    interface State <<interface>> {
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverADisponible()
-    }
-
-    class MotorWarp {
-        - State state
-        + MotorWarp()
-        + void setState(state: State)
-        + State getState()
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverAlDisponible()
-        + boolean estaDisponible()
-        + boolean estaPreparando()
-        + boolean estaEnEnfriamiento()
-    }
-
-    class Disponible {
-        - MotorWarp motorWarp
-        + Disponible(motor: MotorWarp)
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverAlDisponible()
-    }
-
-    class PreparandoSalto {
-        - MotorWarp motorWarp
-        + PreparandoSalto(motor: MotorWarp)
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverAlDisponible()
-    }
-
-    class EnWarp {
-        - MotorWarp motorWarp
-        + EnWarp(motor: MotorWarp)
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverAlDisponible()
-    }
-
-    class Enfriamento {
-        - MotorWarp motorWarp
-        + Enfriamento(motor: MotorWarp)
-        + void prepararSalto()
-        + void entrarEnWarp()
-        + void iniciarEnfriamiento()
-        + void volverAlDisponible()
-    }
-}
-
-' ==========================================
-' PAQUETE: SENSORES Y NAVEGACIÓN
-' ==========================================
-package modelo.sensores {
-    class Sensores {
-        - Tablero tablero
-        + Sensores(tablero: Tablero)
-        + ElementoDelUniverso[] escanearCortoAlcance()
-        + ElementoDelUniverso[] escanearLargoAlcance()
-    }
-
-    class ReglasNavegacion {
-        - Sensores sensores
-        + ReglasNavegacion(sensores: Sensores)
-        + void evaluarYEjecutarPaso(nave: Nave, destino: Posicion)
-        - boolean intentarPasoOrtogonal(nave: Nave, deltaX: int, deltaY: int)
-        - void realizarSaltoNormal(nave: Nave, deltaX: int, deltaY: int)
-        - boolean realizarSaltoWarp(nave: Nave, deltaX: int, deltaY: int)
-        + Sensores getSensores()
-    }
-}
-
-' ==========================================
-' PAQUETE: DESTINO Y TABLERO / ELEMENTOS
-' ==========================================
-package modelo.destinoytablero {
-    abstract class Observable <<abstract>> {
-        + void agregarObservador(o: Object)
-        + void notificarObservadores()
-    }
-
-    class Tablero {
-        - int x
-        - int y
-        - HashMap<Posicion, ElementoDelUniverso> ocupacion
-        - Posicion posicionNave
-        - Posicion objetivo
-        + Tablero(x: int, y: int, elementos: ArrayList<ElementoDelUniverso>)
-        + Posicion getPosicionNave()
-        + void moverNave(posicion: Posicion)
-        + ElementoDelUniverso inspeccionarPosicion()
-        + ElementoDelUniverso[][] observarAlrededores()
-        + ElementoDelUniverso[][] verTablero()
-    }
-
-    class Destino {
-        - Tablero tablero
-        + Destino(tablero: Tablero)
-        + void turnoDestino()
-    }
-
-    class Posicion {
-        - int x
-        - int y
-        + Posicion(x: int, y: int)
-        + int getX()
-        + int getY()
-        + boolean equals(obj: Object)
-        + int hashCode()
-    }
-}
-
-package modelo.elementos {
-    interface ElementoDelUniverso <<interface>> {
-        + void interactuar(nave: Nave)
-    }
-
-    class Asteroide
-    class EstacionDeCarga
-    class Anomalia
-    class Gema
-}
-
-' ==========================================
-' PAQUETE: NAVE (Factory + Double Dispatch)
-' ==========================================
-package modelo.nave {
-    abstract class Nave <<abstract>> {
-        - static final int CAPACIDAD_COMBUSTIBLE = 100
-        - static final int CAPACIDAD_ENERGIA = 100
-        - static final int DESGASTE_MAXIMO = 100
-        - static final int UMBRAL_MANTENIMIENTO = 80
-        - static final int TRIPULACION_MINIMA = 5
-        - final int id
-        - int combustible
-        - int energia
-        - int desgaste
-        - boolean destruida
-        - Posicion posicion
-        - final ArrayList<Tripulante> tripulacion
-        - final MotorWarp motorWarp
-        # Nave(id: int, combustible: int, energia: int)
-        + int getId()
-        + int getCombustible()
-        + int getEnergia()
-        + int getDesgaste()
-        + boolean estaDestruida()
-        + Posicion getPosicion()
-        + void setPosicion(posicion: Posicion)
-        + MotorWarp getMotorWarp()
-        + void descontarCombustible(cant: int)
-        + void descontarEnergia(cant: int)
-        + void generarDesgaste(cant: int)
-        + void realizarMantenimiento()
-        + void destruir()
-        + void agregarTripulante(t: Tripulante)
-        + boolean tieneTripulacionValida()
-        + void interactuar(naveJugador: Nave)
-        + ResultadoCombate enfrentar(rival: Nave)
-        # abstract ResultadoCombate recibirEncuentroDe(navePropia: NaveExploradora)
-        # abstract ResultadoCombate recibirEncuentroDe(navePropia: NaveCarguero)
-        # abstract ResultadoCombate recibirEncuentroDe(navePropia: NaveCombate)
-    }
-
-    class NaveCarguero {
-        + NaveCarguero(id: int)
-    }
-    class NaveCombate {
-        + NaveCombate(id: int)
-    }
-    class NaveExploradora {
-        + NaveExploradora(id: int)
-    }
-
-    class NaveFactory {
-        - NaveFactory()
-        + static Nave crearNave(tipo: TipoNave, id: int)
-    }
-
-    enum TipoNave {
+    enum TipoNave <<enum>> {
         CARGUERO
         COMBATE
         EXPLORADORA
     }
 
-    enum ResultadoCombate {
+    class NaveFactory <<Factory>> {
+        - NaveFactory()
+        + {static} crearNave(tipo: TipoNave, id: int): Nave
+    }
+
+    interface ElementoDelUniverso <<interface>> {
+        + interactuar(nave: Nave): void
+    }
+
+    enum ResultadoCombate <<enum>> {
         GANA
         PIERDE
         PACTO_DE_PAZ
     }
-}
 
-' ==========================================
-' PAQUETE: ASISTENTE DE COMANDOS (Mediador)
-' ==========================================
-package modelo.asistenteDeComandos {
-    class AsistenteDeComandos {
-        - Nave nave
-        - Bitacora bitacora
-        - Tablero tablero
-        - Destino destino
-        - ReglasNavegacion reglas
-        - Posicion base
-        + AsistenteDeComandos(nave: Nave, bitacora: Bitacora)
-        + AsistenteDeComandos(nave: Nave, bitacora: Bitacora, tablero: Tablero)
-        + void setTablero(tablero: Tablero)
-        + void setReglasNavegacion(reglas: ReglasNavegacion)
-        + void avanzarHacia(destinoFinal: Posicion)
-        + void interactuarCon(elemento: ElementoDelUniverso)
-        + void registrarEvento(evento: String)
-        + Nave getNave()
-    }
-}
-
-' ==========================================
-' PAQUETE: MISIONES (Template Method)
-' ==========================================
-package modelo.misiones {
-    abstract class Mision <<abstract>> {
-        # AsistenteDeComandos AC
-        # ResultadoMision resultado
-        # InformeMision informe
-        + Mision(AC: AsistenteDeComandos)
-        + final boolean director()
-        # abstract void evalar()
-        # abstract boolean ejecutar()
-        # boolean preparar()
-        # void cerrar()
-        + InformeMision getInforme()
-        # abstract int getCombustibleRequerido()
-        # abstract int getEnergiaRequerida()
-        # abstract int getDesgasteGenerado()
+    abstract class Nave <<abstract>> implements ElementoDelUniverso {
+        - id: int
+        - combustible: int
+        - energia: int
+        - motorWarp: MotorWarp
+        - tripulacion: List<Tripulante>
+        # Nave(id: int, combustible: int, energia: int)
+        + getId(): int
+        + getCombustible(): int
+        + getEnergia(): int
+        + getMotorWarp(): MotorWarp
+        + agregarTripulante(t: Tripulante): void
+        + interactuar(naveJugador: Nave): void
+        + {abstract} enfrentar(rival: Nave): ResultadoCombate
+        # {abstract} recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+        # {abstract} recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+        # {abstract} recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
     }
 
-    class Intercepcion {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Intercepcion(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
-    }
-    class Recoleccion {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Recoleccion(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
-    }
-    class Retorno {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Retorno(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
+    class NaveExploradora <<ConcreteProduct>> extends Nave {
+        ~ NaveExploradora(id: int)
+        + enfrentar(rival: Nave): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
     }
 
-    enum ResultadoMision {
-        EXITOSA
-        FALLIDA
+    class NaveCarguero <<ConcreteProduct>> extends Nave {
+        ~ NaveCarguero(id: int)
+        + enfrentar(rival: Nave): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
     }
 
-    class InformeMision {
-        - final String misionEjecutada
-        - final ResultadoMision resultado
-        - final List<String> acionesPrincipales
-        - final String recursosConsumidos
-        - final String estadoNave
-        - final String observaciones
-        + InformeMision(...)
-        + String toString()
+    class NaveCombate <<ConcreteProduct>> extends Nave {
+        ~ NaveCombate(id: int)
+        + enfrentar(rival: Nave): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveExploradora): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCarguero): ResultadoCombate
+        # recibirEncuentroDe(navePropia: NaveCombate): ResultadoCombate
     }
 }
 
-' ==========================================
-' PAQUETE: TRIPULACIÓN (Decorator)
-' ==========================================
-package modelo.Tripulacion {
-    abstract class Tripulante <<abstract>> {
-        # Identidad identidad
-        # String cargo
-        # double antiguedad
-        # String origen
-        # double sueldob
-        + Tripulante(id: Identidad, ant: double)
-        + abstract double getSueldo()
-        + String getID()
-        + String getCargo()
-        + double getAntiguedad()
-        + String getOrigen()
+package "2. modelo.motorWarp (Patrón State)" {
+
+    interface State <<interface>> {
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverADisponible(): void
     }
 
-    class Identidad {
-        - static int sig
-        - int id
-        - String nombre
-        + Identidad(nombre: String)
-        + String getNombre()
+    class MotorWarp <<Context>> {
+        - state: State
+        - turnosPreparacion: int
+        - turnosEnfriamiento: int
+        + MotorWarp()
+        + setState(state: State): void
+        + getState(): State
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverAlDisponible(): void
+        + estaDisponible(): boolean
+        + estaPreparando(): boolean
+        + estaEnEnfriamiento(): boolean
+        + estaListoParaSaltar(): boolean
     }
+
+    class Disponible <<ConcreteState>> implements State {
+        - motorWarp: MotorWarp
+        + Disponible(motorWarp: MotorWarp)
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverADisponible(): void
+    }
+
+    class PreparandoSalto <<ConcreteState>> implements State {
+        - motorWarp: MotorWarp
+        + PreparandoSalto(motorWarp: MotorWarp)
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverADisponible(): void
+    }
+
+    class EnWarp <<ConcreteState>> implements State {
+        - motorWarp: MotorWarp
+        + EnWarp(motorWarp: MotorWarp)
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverADisponible(): void
+    }
+
+    class Enfriamento <<ConcreteState>> implements State {
+        - motorWarp: MotorWarp
+        + Enfriamento(motorWarp: MotorWarp)
+        + prepararSalto(): void
+        + entrarEnWarp(): void
+        + iniciarEnfriamiento(): void
+        + volverADisponible(): void
+    }
+}
+
+package "3. modelo.Tripulacion (Patrón Decorator)" {
 
     interface Haber <<interface>> {
-        + double getSueldo()
+        + getSueldo(): double
     }
 
-    class Capitan {
-        - static Capitan instancia
-        - AsistenteDeComandos ANav
-        - double sueldob
-        - double bonusant
-        + Capitan(id: Identidad, ant: double, anav: AsistenteDeComandos)
-        + double getSueldo()
-        + static Capitan getInstancia()
+    abstract class Tripulante <<Componente>> implements Haber {
+        # identidad: Identidad
+        # ant: double
+        + {abstract} getSueldo(): double
     }
 
-    class Consejero {
-        - double sueldob
-        - double bonusant
-        - ArrayList<String> Lconsejos
-        + Consejero(id: Identidad, ant: double)
-        + double getSueldo()
+    abstract class DecoratorPlaneta <<Decorator>> implements Haber {
+        - haber: Haber
+        + getHaber(): Haber
+        + setHaber(haber: Haber): void
     }
 
-    class Teniente {
-        - double sueldob
-        - double bonusant
-        + Teniente(id: Identidad, ant: double)
-        + double getSueldo()
-    }
-
-    class Alferez {
-        - double sueldob
-        - double bonusant
-        + Alferez(id: Identidad, ant: double)
-        + double getSueldo()
-    }
-
-    abstract class DecoratorPlaneta <<abstract>> {
-        - Haber haber
-        # Tripulante tripulante
-        + DecoratorPlaneta(t: Tripulante)
-    }
-
-    class Marciano {
-        - final double subsidio
+    class Marciano <<ConcreteDecorator>> extends DecoratorPlaneta {
+        - subsidio: double
         + Marciano(haber: Haber)
-        + double getSueldo()
+        + getSueldo(): double
     }
 
-    class Terricola {
-        - final double subsidio
+    class Terricola <<ConcreteDecorator>> extends DecoratorPlaneta {
+        - subsidio: double
         + Terricola(haber: Haber)
-        + double getSueldo()
+        + getSueldo(): double
     }
 
-    class Vulcano {
-        - final double subsidio
+    class Vulcano <<ConcreteDecorator>> extends DecoratorPlaneta {
+        - subsidio: double
         + Vulcano(haber: Haber)
-        + double getSueldo()
+        + getSueldo(): double
+    }
+
+    class Capitan <<ConcreteComponent>> extends Tripulante
+    class Teniente <<ConcreteComponent>> extends Tripulante
+    class Consejero <<ConcreteComponent>> extends Tripulante
+    class Alferez <<ConcreteComponent>> extends Tripulante
+}
+
+package "4. modelo.misiones (Patrón Template Method)" {
+
+    abstract class Mision {
+        # AC: AsistenteDeComandos
+        # resultado: ResultadoMision
+        # informe: InformeMision
+        + Mision(AC: AsistenteDeComandos)
+        + final director(): boolean <<Template Method>>
+        # preparar(): boolean
+        # {abstract} getCombustibleRequerido(): int
+        # {abstract} getEnergiaRequerida(): int
+        # {abstract} getDesgasteGenerado(): int
+        # {abstract} definirObjetivo(): Posicion
+        # {abstract} verificarEnDestino(): boolean
+        # {abstract} aplicarCierre(): void
+        # {abstract} describirCierre(): String
+        + getInforme(): InformeMision
+    }
+
+    class Intercepcion extends Mision
+    class Recoleccion extends Mision
+    class Retorno extends Mision
+}
+
+package "5. modelo.UniversoAlterno (Monitores / Concurrencia)" {
+
+    class PlataformaDeCarga <<Monitor>> {
+        - bateriasDisponibles: int
+        - capacidadMaxima: int
+        + synchronized depositarBateria(generadoraId: String): void
+        + synchronized retirarBateria(naveId: String): void
+    }
+
+    class GeneradoraDeEnergia <<Productor>> implements java.lang.Runnable {
+        - plataforma: PlataformaDeCarga
+        + run(): void
+    }
+
+    class NaveConsumidora <<Consumidor>> implements java.lang.Runnable {
+        - plataforma: PlataformaDeCarga
+        + run(): void
     }
 }
 
-' ==========================================
-' RELACIONES Y DEPENDENCIAS
-' ==========================================
+package "6. modelo.Persistencia (DAO & DTO)" {
 
-' State (Motor Warp)
-MotorWarp o-- State : estado
-State <|.. Disponible
-State <|.. PreparandoSalto
-State <|.. EnWarp
-State <|.. Enfriamento
+    class UsuarioDTO <<DTO>> {
+        - nombreUsuario: String
+        - contrasena: String
+    }
 
-' Factory & Double Dispatch & ElementoDelUniverso
-Nave <|-- NaveCarguero
-Nave <|-- NaveCombate
-Nave <|-- NaveExploradora
-ElementoDelUniverso <|.. Nave
-NaveFactory ..> Nave : crea
-NaveFactory ..> TipoNave : usa
-Nave *-- MotorWarp : contiene
-Nave ..> Posicion : se posiciona en
+    interface UsuarioDAO <<interface>> {
+        + registrar(usuario: UsuarioDTO): boolean
+        + autenticar(nombreUsuario: String, contrasena: String): boolean
+    }
 
-' Sensores & Navegación
-Sensores ..> Tablero : lee vecindario
-ReglasNavegacion o-- Sensores : usa
-ReglasNavegacion ..> Nave : navega / salta
-ReglasNavegacion ..> Posicion : evalua coordenadas
+    class ArchivoUsuarioDao implements UsuarioDAO {
+        - archivoUsuarios: Path
+    }
 
-' Tablero y Elementos
-Observable <|-- Tablero
-Tablero o-- Posicion : grilla
-Tablero o-- ElementoDelUniverso : contiene
-Destino o-- Tablero : mueve elementos
-ElementoDelUniverso <|.. Asteroide
-ElementoDelUniverso <|.. EstacionDeCarga
-ElementoDelUniverso <|.. Anomalia
-ElementoDelUniverso <|.. Gema
+    class AutenticacionService {
+        - usuarioDAO: UsuarioDAO
+        - usuarioActual: UsuarioDTO
+    }
+}
 
-' AsistenteDeComandos (Mediador)
-AsistenteDeComandos o-- Nave : coordina
-AsistenteDeComandos o-- Bitacora : registra
-AsistenteDeComandos o-- Tablero : actualiza
-AsistenteDeComandos o-- ReglasNavegacion : delega paso
-AsistenteDeComandos ..> Mision : ejecuta
+package "7. modelo.asistenteDeComandos (Fachada & Coordinación)" {
 
-' Template Method (Misiones)
-Mision <|-- Intercepcion
-Mision <|-- Recoleccion
-Mision <|-- Retorno
-Mision *-- InformeMision : produce
-Mision *-- ResultadoMision : genera
-Mision ..> Bitacora : registra
+    class AsistenteDeComandos {
+        - nave: Nave
+        - bitacora: Bitacora
+        - tablero: Tablero
+        - reglas: ReglasNavegacion
+    }
 
-' Decorator (Tripulación)
-Tripulante <|.. Capitan
-Tripulante <|.. Consejero
-Tripulante <|.. Teniente
-Tripulante <|.. Alferez
-Tripulante <|.. DecoratorPlaneta
-Tripulante *-- Identidad : tiene
-DecoratorPlaneta o-- Tripulante : envuelve
-DecoratorPlaneta <|-- Marciano
-DecoratorPlaneta <|-- Terricola
-DecoratorPlaneta <|-- Vulcano
-Nave *-- Tripulante : tripulacion
+    class Bitacora <<Singleton>>
+    class Tablero
+    class ReglasNavegacion
+}
+
+' =========================================================
+' CONEXIONES INTER-PAQUETES (EL NÚCLEO DEL DIAGRAMA)
+' =========================================================
+
+' Conexiones principales de Nave con los patrones:
+Nave --> "1" MotorWarp : posee (State)
+Nave o--> "*" Tripulante : posee (Decorator)
+NaveFactory ..> Nave : crea (Factory)
+Nave ..> ResultadoCombate : resuelve (Double Dispatch)
+
+' Conexiones de Concurrencia:
+GeneradoraDeEnergia --> "1" PlataformaDeCarga : deposita en
+NaveConsumidora --> "1" PlataformaDeCarga : retira de
+NaveConsumidora --> "1" Nave : consume energía para
+
+' Conexiones de Persistencia:
+ArchivoUsuarioDao ..|> UsuarioDAO : implementa
+AutenticacionService --> "1" UsuarioDAO : usa (DIP)
+AutenticacionService o--> "0..1" UsuarioDTO : gestiona
+UsuarioDAO ..> UsuarioDTO : transfiere
+
+' Conexiones del Asistente y Misiones:
+AsistenteDeComandos --> "1" Nave : coordina
+AsistenteDeComandos --> "1" Bitacora : registra eventos
+Mision --> "1" AsistenteDeComandos : ejecuta comandos sobre
 
 @enduml
