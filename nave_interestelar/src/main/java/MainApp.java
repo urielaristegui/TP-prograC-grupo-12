@@ -110,6 +110,17 @@ public class MainApp {
             elementos.add(NaveFactory.crearNave(
                     TipoNave.COMBATE, 4
             ));
+            elementos.add(NaveFactory.crearNave(
+                    TipoNave.EXPLORADORA, 5
+            ));
+
+            elementos.add(NaveFactory.crearNave(
+                    TipoNave.CARGUERO, 6
+            ));
+
+            elementos.add(NaveFactory.crearNave(
+                    TipoNave.COMBATE, 7
+            ));
 
             // INICIALIZAR UNIVERSO
 
