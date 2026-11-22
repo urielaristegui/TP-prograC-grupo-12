@@ -2,52 +2,37 @@ package modelo.motorWarp;
 
 import modelo.bitacora.Bitacora;
 
-public class Disponible implements modelo.motorWarp.State {
+public class Enfriamento implements State {
     private MotorWarp motorWarp;
 
     /**
-     * constructor de la clase Disponible<br>
-     * <b>pre:</b>motorWarp != null  <br>
-     * <b>post:</b> se inicializa el atributo motorWarp <br>
+     - constructor de la clase Enfriamento<br>
+     - <b>pre:</b>motorWarp != null  <br>
+     - <b>post:</b> se inicializa el atributo motorWarp <br>
      */
-    public Disponible(MotorWarp motorWarp){
+    public Enfriamento(MotorWarp motorWarp) {
         this.motorWarp = motorWarp;
     }
 
-    /**
-     * cambia el estado del motorWarp a PreparandoSalto<br>
-     * <b>post:</b> el motorWarp se encuentra en el estado PreparandoSalto <br>
-     */
     @Override
     public void prepararSalto() {
-        motorWarp.setState(new PreparandoSalto(motorWarp));
-        Bitacora.getInstance().registrar("preparando salto");
+        Bitacora.getInstance().registrar("ERROR: no se puede preparar el salto en enfriamiento");
     }
 
-    /**
-     *intenta entrar en warp <br>
-     * <b>post:</b> error <br>
-     */
     @Override
-    public void entrarEnWarp(){
-        Bitacora.getInstance().registrar("ERROR: no se puede entrar en warp sin preparar el salto");
+    public void entrarEnWarp() {
+        Bitacora.getInstance().registrar("ERROR: no se puede entrar en warp en enfriamiento");
     }
 
-    /**
-     * intenta iniciar el enfriamiento <br>
-     * <b>post:</b> error <br>
-     */
-    @Override
-    public void iniciarEnfriamiento() {
-        Bitacora.getInstance().registrar("ERROR: no requiere enfriamiento");
-    }
-
-    /**
-     * intenta volver a disponible <br>
-     * <b>post:</b> error <br>
-     */
     @Override
     public void volverADisponible() {
-        Bitacora.getInstance().registrar("el motor permanece disponible");
+        motorWarp.setState(new Disponible(motorWarp));
+        Bitacora.getInstance().registrar("volviendo a disponible");
+    }
+
+    @Override
+    public void iniciarEnfriamiento() {
+        Bitacora.getInstance().registrar("el motor permanece en enfriamiento");
+
     }
 }
