@@ -25,3 +25,8 @@
 * **Revisión / Modificación del equipo:** agregado de pruebas.  
 * **Verificación del resultado:** Se validó que se instancien correctamente las clases y el correcto llamado a los métodos de cada una.
 
+
+
+Parte 2
+
+Para esta parte se usaron IA tales como Gemini, Claude, Notebook y GPT como ayuda complementaria de la base que teníamos para terminar las implementaciones que nos quedaban, sumado a la concurrencia, persistencia, patrones Observer y Observable, y arquitectura MVC. Además, nos ayudó en la generación de las pruebas con los paneles de cada clase por separado para así juntarlo todo. También le delegamos la tarea de corregir errores generales que se nos podían pasar por alto. Y, por último, en la implementación de los contratos de los métodos correspondientes.
