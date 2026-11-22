@@ -163,8 +163,6 @@ public class MotorWarp {
 
         estado.iniciarEnfriamiento();
 
-        nave.generarDesgaste(DESGASTE_WARP);
-
         turnosPreparacion = 0;
         turnosEnfriamiento = 0;
 
