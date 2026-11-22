@@ -1,21 +1,12 @@
-
 package modelo.motorWarp;
 
 import modelo.bitacora.Bitacora;
 import modelo.nave.Nave;
 
 /**
- * Contexto del patron State para el motor de la nave.
- *
- * Las unicas operaciones publicas de vuelo son:
- * - saltar(): salto normal.
- * - saltarWarp(): salto Warp.
- *
- * Cada llamada representa como maximo un turno.
- *
- * Invariantes:
- * - estado != null.
- * - Los contadores de turnos son no negativos.
+ * contexto del patron state para el motor de la nave.<br>
+ * administra los estados operativos, los contadores de preparacion y enfriamiento, y las operaciones de salto.<br>
+ * <b>invariante:</b> state != null && turnosPreparacion >= 0 && turnosEnfriamiento >= 0.
  */
 public class MotorWarp {
 
@@ -29,30 +20,21 @@ public class MotorWarp {
     private int turnosEnfriamiento;
 
     /**
-     * Pre: ninguna.
-     * Post: inicializa el motor Disponible.
+     * construye el motor warp en estado disponible con sus contadores en cero.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> inicializa estado en una nueva instancia de Disponible, turnosPreparacion en 0 y turnosEnfriamiento en 0.<br>
      */
     public MotorWarp() {
         estado = new Disponible(this);
     }
 
-
     /**
-     * Solicita un salto normal.
+     * solicita o procesa un salto normal para la nave.<br>
+     * <b>pre:</b> nave != null, la nave no esta destruida y este motor pertenece a la nave (o su motor es null).<br>
+     * <b>post:</b> si esta en enfriamiento, completa un turno de enfriamiento y retorna false; si no esta disponible o no hay combustible suficiente, registra el evento y retorna false; si esta disponible y hay combustible suficiente, descuenta 2 de combustible y retorna true.<br>
      *
-     * Pre:
-     * - nave != null.
-     * - La nave pertenece a este motor.
-     *
-     * Post:
-     * - Si esta Disponible, consume 2 de combustible
-     *   y autoriza un salto normal.
-     * - Si esta Enfriamento, procesa el turno pendiente,
-     *   genera 3 de desgaste y no permite desplazarse.
-     * - Si esta PreparandoSalto, no interrumpe el Warp.
-     *
-     * @param nave nave propietaria
-     * @return true si autoriza el salto normal
+     * @param nave nave propietaria del motor.
+     * @return true si se autoriza el salto normal, false en caso contrario.
      */
     public boolean saltar(Nave nave) {
 
@@ -88,25 +70,13 @@ public class MotorWarp {
         return true;
     }
 
-
     /**
-     * Solicita o continua un salto Warp.
+     * solicita o continua un salto warp para la nave.<br>
+     * <b>pre:</b> nave != null, la nave no esta destruida, este motor pertenece a la nave (o su motor es null) y la navegacion valido previamente la casilla de aterrizaje.<br>
+     * <b>post:</b> si esta en enfriamiento, avanza el enfriamiento y retorna false; si esta disponible, inicia la preparacion; si falta energia, permanece en preparacion y retorna false; si cumple los turnos y la energia, consume 5 de energia, genera 3 de desgaste, pasa a enfriamiento y retorna true.<br>
      *
-     * Pre:
-     * - nave != null.
-     * - La nave pertenece a este motor.
-     * - La navegacion valida previamente
-     *   la casilla de aterrizaje.
-     *
-     * Post:
-     * - Exige dos turnos de preparacion.
-     * - Sin energia suficiente permanece preparando.
-     * - Cuando esta listo, consume 5 de energia,
-     *   genera 3 de desgaste y pasa a enfriamiento.
-     * - Autoriza avanzar dos casillas al devolver true.
-     *
-     * @param nave nave propietaria
-     * @return true solamente al ejecutar el Warp
+     * @param nave nave propietaria del motor.
+     * @return true unicamente cuando se ejecuta el salto warp, false en caso contrario.
      */
     public boolean saltarWarp(Nave nave) {
 
@@ -177,15 +147,12 @@ public class MotorWarp {
     }
 
     /**
-     * Modifica el estado desde las clases State.
+     * modifica el estado actual del motor warp desde las clases state.<br>
+     * <b>pre:</b> nuevo != null.<br>
+     * <b>post:</b> reemplaza el atributo estado por nuevo.<br>
      *
-     * Visibilidad de paquete: no se expone
-     * a los controladores ni a la navegacion.
-     *
-     * Pre: nuevo != null.
-     * Post: reemplaza el estado actual.
-     *
-     * @param nuevo nuevo estado
+     * @param nuevo nuevo estado del motor warp.
+     * @throws IllegalArgumentException si nuevo es null.
      */
     void setState(State nuevo) {
 
@@ -198,21 +165,12 @@ public class MotorWarp {
         estado = nuevo;
     }
 
-
     /**
-     * Procesa el turno de enfriamiento del Motor Warp.
+     * procesa un turno de enfriamiento del motor warp.<br>
+     * <b>pre:</b> nave != null y el motor se encuentra en estado Enfriamento.<br>
+     * <b>post:</b> incrementa turnosEnfriamiento y, al completarse el turno, genera 3 puntos de desgaste en la nave, transiciona a Disponible y reinicia turnosEnfriamiento a 0.<br>
      *
-     * Pre:
-     * - nave != null.
-     * - El motor esta en estado Enfriamento.
-     *
-     * Post:
-     * - Avanza un turno de enfriamiento.
-     * - Genera exactamente 3 puntos de desgaste.
-     * - Devuelve el motor al estado Disponible.
-     * - No desplaza la nave.
-     *
-     * @param nave nave propietaria del motor
+     * @param nave nave propietaria del motor.
      */
     private void completarEnfriamiento(Nave nave) {
 
@@ -241,14 +199,14 @@ public class MotorWarp {
         }
     }
 
-
     /**
-     * Valida que la nave pueda utilizar el motor.
+     * valida que la nave exista, no este destruida y tenga asignado este motor o ninguno.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> no modifica el estado del motor ni de la nave; lanza excepcion si no se cumplen las condiciones de validez.<br>
      *
-     * Pre: ninguna.
-     * Post: no modifica el estado.
-     *
-     * @param nave nave a validar
+     * @param nave nave a validar.
+     * @throws IllegalArgumentException si nave es null o si la nave tiene otro motor warp asignado.
+     * @throws IllegalStateException si la nave esta destruida.
      */
     private void validarNave(Nave nave) {
 

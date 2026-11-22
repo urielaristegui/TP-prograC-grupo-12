@@ -16,12 +16,26 @@ public class Recoleccion extends Mision {
 
 	private final int gemas;
 
-	/** Recompensa sorteada entre 20 y 100 gemas. */
+	/** Recompensa sorteada entre 20 y 100 gemas.
+	 * <br>
+	 * <b>pre:</b> AC != null.<br>
+	 * <b>post:</b> se inicializa la mision base con AC y se sortea la cantidad de gemas entre GEMAS_MINIMAS y GEMAS_MAXIMAS.<br>
+	 *
+	 * @param AC asistente de comandos utilizado para ejecutar la mision. AC != null.
+	 */
 	public Recoleccion(AsistenteDeComandos AC) {
 		this(AC, GEMAS_MINIMAS + new Random().nextInt(GEMAS_MAXIMAS - GEMAS_MINIMAS + 1));
 	}
 
-	/** @param gemas entre 20 y 100 (útil para pruebas reproducibles) */
+	/** @param gemas entre 20 y 100 (útil para pruebas reproducibles)
+	 * <br>
+	 * <b>pre:</b> AC != null y GEMAS_MINIMAS <= gemas <= GEMAS_MAXIMAS.<br>
+	 * <b>post:</b> se inicializa la mision base con AC y se asigna la cantidad de gemas indicada.<br>
+	 *
+	 * @param AC asistente de comandos utilizado para ejecutar la mision. AC != null.
+	 * @param gemas cantidad de gemas a recolectar, entre 20 y 100.
+	 * @throws IllegalArgumentException si gemas esta fuera del rango [20, 100].
+	 */
 	public Recoleccion(AsistenteDeComandos AC, int gemas) {
 		super(AC);
 		if (gemas < GEMAS_MINIMAS || gemas > GEMAS_MAXIMAS) {

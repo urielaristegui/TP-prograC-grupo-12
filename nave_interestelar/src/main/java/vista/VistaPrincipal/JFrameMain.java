@@ -30,8 +30,8 @@ import modelo.sensores.ReglasNavegacion;
 import modelo.sensores.Sensores;
 
 import vista.Misiones.PanelMisiones;
-import vista.JPanelTablero;
-import vista.PanelBitacoraYSensores;
+import vista.Tablero.JPanelTablero;
+import vista.Bitacora.PanelBitacoraYSensores;
 import vista.Persistencia.NavegacionAccesoObserver;
 import vista.Persistencia.AutenticacionObserver;
 import vista.Persistencia.JPanelLogin;

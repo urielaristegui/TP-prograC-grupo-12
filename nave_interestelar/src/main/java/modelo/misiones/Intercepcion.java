@@ -1,4 +1,3 @@
-
 package modelo.misiones;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,13 +9,13 @@ import modelo.nave.NaveFactory;
 import modelo.nave.TipoNave;
 
 /**
- * M-01: llegar hasta la nave aliada y entregarle suministros.
+ - M-01: llegar hasta la nave aliada y entregarle suministros.
  *
- * La nave aliada tiene posicion y recursos propios.
- * Su posicion coincide con el objetivo de la mision.
+ - La nave aliada tiene posicion y recursos propios.
+ - Su posicion coincide con el objetivo de la mision.
  *
- * Se representa como objetivo de asistencia, no como
- * nave enemiga del Tablero, evitando un combate.
+ - Se representa como objetivo de asistencia, no como
+ - nave enemiga del Tablero, evitando un combate.
  */
 public class Intercepcion extends Mision {
 
@@ -33,16 +32,14 @@ public class Intercepcion extends Mision {
 	private final Nave naveAliada;
 
 	/**
-	 * Crea una mision de asistencia.
+	 * construye una mision de asistencia con las cantidades de combustible y energia a transferir.<br>
+	 * <b>pre:</b> AC != null, 0 <= combustibleSolicitado <= 50 y 0 <= energiaSolicitada <= 50.<br>
+	 * <b>post:</b> inicializa la mision base con AC, fija los recursos solicitados y crea una nave aliada carguera con capacidad reservada para recibir hasta 50 unidades de cada recurso.<br>
 	 *
-	 * Pre:
-	 * - AC != null.
-	 * - combustibleSolicitado entre 0 y 50.
-	 * - energiaSolicitada entre 0 y 50.
-	 *
-	 * Post:
-	 * - Crea una nave aliada receptora.
-	 * - Reserva capacidad para recibir recursos.
+	 * @param AC asistente de comandos utilizado para la mision. AC != null.
+	 * @param combustibleSolicitado combustible a transferir a la nave aliada, entre 0 y 50.
+	 * @param energiaSolicitada energia a transferir a la nave aliada, entre 0 y 50.
+	 * @throws IllegalArgumentException si combustibleSolicitado o energiaSolicitada estan fuera del rango [0, 50].
 	 */
 	public Intercepcion(
 			AsistenteDeComandos AC,
@@ -95,19 +92,6 @@ public class Intercepcion extends Mision {
 		return DESGASTE_DESPEGUE;
 	}
 
-	/**
-	 * Determina la posicion de la nave aliada.
-	 *
-	 * Pre:
-	 * - Existe un tablero.
-	 * - Existe una casilla libre.
-	 *
-	 * Post:
-	 * - La nave aliada recibe una posicion.
-	 * - La posicion es el objetivo de la mision.
-	 *
-	 * @return posicion de la nave aliada
-	 */
 	@Override
 	protected Posicion definirObjetivo() {
 
@@ -126,18 +110,6 @@ public class Intercepcion extends Mision {
 		return objetivo;
 	}
 
-	/**
-	 * Verifica que pueda realizarse la entrega.
-	 *
-	 * Pre: se ejecuto la fase de navegacion.
-	 *
-	 * Post:
-	 * - Comprueba que ambas naves coincidan.
-	 * - Comprueba recursos suficientes.
-	 * - No modifica ninguna nave.
-	 *
-	 * @return true si puede realizarse la entrega
-	 */
 	@Override
 	protected boolean verificarEnDestino() {
 
@@ -154,18 +126,6 @@ public class Intercepcion extends Mision {
 				> energiaSolicitada;
 	}
 
-	/**
-	 * Realiza la transferencia de recursos.
-	 *
-	 * Pre:
-	 * - Se verificaron los recursos.
-	 * - Las naves estan en la misma posicion.
-	 *
-	 * Post:
-	 * - La nave propia entrega recursos.
-	 * - La nave aliada recibe esos recursos.
-	 * - No se ejecuta un enfrentamiento.
-	 */
 	@Override
 	protected void aplicarCierre() {
 
@@ -183,17 +143,16 @@ public class Intercepcion extends Mision {
 				+ combustibleSolicitado
 				+ " de combustible y "
 				+ energiaSolicitada
-				+ " de energia a nave aliada "
+				+ " de energia a la nave aliada "
 				+ naveAliada.getId();
 	}
 
 	/**
-	 * Consulta la nave auxiliada.
+	 * devuelve la nave aliada asociada a esta mision de asistencia.<br>
+	 * <b>pre:</b> la mision esta inicializada.<br>
+	 * <b>post:</b> retorna la instancia de naveAliada sin modificar su estado.<br>
 	 *
-	 * Pre: ninguna.
-	 * Post: no modifica el estado.
-	 *
-	 * @return nave aliada de esta mision
+	 * @return nave aliada de esta mision.
 	 */
 	public Nave getNaveAliada() {
 		return naveAliada;

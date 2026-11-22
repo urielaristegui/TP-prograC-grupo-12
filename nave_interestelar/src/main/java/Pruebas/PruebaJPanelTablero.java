@@ -18,7 +18,7 @@ import modelo.nave.Nave;
 import modelo.nave.NaveFactory;
 import modelo.nave.TipoNave;
 import modelo.universo.Universo;
-import vista.JPanelTablero;
+import vista.Tablero.JPanelTablero;
 import vista.Persistencia.AutenticacionObserver;
 import vista.Persistencia.JPanelLogin;
 import vista.Persistencia.JPanelRegistro;

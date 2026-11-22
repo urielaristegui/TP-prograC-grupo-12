@@ -1,4 +1,3 @@
-
 package Controlador;
 
 import java.util.ArrayList;
@@ -13,12 +12,12 @@ import modelo.nave.*;
 import modelo.universo.Universo;
 
 /**
- * Controlador MVC para crear una nave y asignarle tripulantes.
+ - Controlador MVC para crear una nave y asignarle tripulantes.
  *
- * Invariantes:
- * - universo != null.
- * - tripulantesController != null.
- * - Solo se selecciona una nave por sesion.
+ - Invariantes:
+ - - universo != null.
+ - - tripulantesController != null.
+ - - Solo se selecciona una nave por sesion.
  */
 public final class CreacionNaveController {
 
@@ -30,6 +29,13 @@ public final class CreacionNaveController {
 
         private final String nombre;
 
+        /**
+         * construye un valor del enumerado Cargo con su nombre visible.<br>
+         * <b>pre:</b> nombre != null.<br>
+         * <b>post:</b> se inicializa el atributo nombre.<br>
+         *
+         * @param nombre nombre del cargo.
+         */
         Cargo(String nombre) {
             this.nombre = nombre;
         }
@@ -45,10 +51,10 @@ public final class CreacionNaveController {
     private boolean creada;
 
     /**
-     * Pre: universo y tripulantesController != null.
-     * Post: almacena las referencias sin modificar el modelo.
+     - Pre: universo y tripulantesController != null.
+     - Post: almacena las referencias sin modificar el modelo.
      *
-     * @throws IllegalArgumentException si hay argumentos nulos
+     - @throws IllegalArgumentException si hay argumentos nulos
      */
     public CreacionNaveController(
             Universo universo,
@@ -65,23 +71,23 @@ public final class CreacionNaveController {
     }
 
     /**
-     * Crea la nave que controlara el jugador.
+     - Crea la nave que controlara el jugador.
      *
-     * Pre:
-     * - tipo != null.
-     * - id > 0.
-     * - ID no utilizado por una nave enemiga.
-     * - No se creo otra nave durante esta sesion.
+     - Pre:
+     - - tipo != null.
+     - - id > 0.
+     - - ID no utilizado por una nave enemiga.
+     - - No se creo otra nave durante esta sesion.
      *
-     * Post:
-     * - Crea una nave utilizando NaveFactory.
-     * - La establece como nave principal del universo.
-     * - Conserva los elementos existentes del tablero.
-     * - Actualiza los observadores.
+     - Post:
+     - - Crea una nave utilizando NaveFactory.
+     - - La establece como nave principal del universo.
+     - - Conserva los elementos existentes del tablero.
+     - - Actualiza los observadores.
      *
-     * @param tipo tipo de nave
-     * @param id identificador de la nave
-     * @return nave creada
+     - @param tipo tipo de nave
+     - @param id identificador de la nave
+     - @return nave creada
      */
     public Nave crearNave(TipoNave tipo, int id) {
 
@@ -124,24 +130,24 @@ public final class CreacionNaveController {
     }
 
     /**
-     * Agrega un tripulante a la nave creada.
+     - Agrega un tripulante a la nave creada.
      *
-     * Pre:
-     * - Existe una nave creada.
-     * - nombre no vacio.
-     * - cargo != null.
-     * - antiguedad >= 0 y finita.
-     * - No existe otro tripulante con el mismo nombre.
-     * - La nave no posee otro Capitan.
+     - Pre:
+     - - Existe una nave creada.
+     - - nombre no vacio.
+     - - cargo != null.
+     - - antiguedad >= 0 y finita.
+     - - No existe otro tripulante con el mismo nombre.
+     - - La nave no posee otro Capitan.
      *
-     * Post:
-     * - Crea e incorpora el tripulante.
-     * - Actualiza el controlador de Tripulantes y Haberes.
+     - Post:
+     - - Crea e incorpora el tripulante.
+     - - Actualiza el controlador de Tripulantes y Haberes.
      *
-     * @param nombre identidad del tripulante
-     * @param cargo cargo seleccionado
-     * @param antiguedad antiguedad en anios
-     * @return tripulante creado
+     - @param nombre identidad del tripulante
+     - @param cargo cargo seleccionado
+     - @param antiguedad antiguedad en anios
+     - @return tripulante creado
      */
     public Tripulante agregarTripulante(
             String nombre,
@@ -232,23 +238,23 @@ public final class CreacionNaveController {
 
 
     /**
-     * Crea un tripulante con origen planetario.
+     - Crea un tripulante con origen planetario.
      *
-     * Pre:
-     * - Existe una nave creada.
-     * - Identidad unica y datos validos.
-     * - origen != null.
+     - Pre:
+     - - Existe una nave creada.
+     - - Identidad unica y datos validos.
+     - - origen != null.
      *
-     * Post:
-     * - Incorpora el tripulante a la nave.
-     * - Aplica el Decorator correspondiente.
-     * - Actualiza la vista de haberes.
+     - Post:
+     - - Incorpora el tripulante a la nave.
+     - - Aplica el Decorator correspondiente.
+     - - Actualiza la vista de haberes.
      *
-     * @param nombre identidad del tripulante
-     * @param cargo cargo seleccionado
-     * @param antiguedad antiguedad en anios
-     * @param origen planeta de origen
-     * @return tripulante incorporado
+     - @param nombre identidad del tripulante
+     - @param cargo cargo seleccionado
+     - @param antiguedad antiguedad en anios
+     - @param origen planeta de origen
+     - @return tripulante incorporado
      */
     public Tripulante agregarTripulante(
             String nombre,
@@ -277,32 +283,32 @@ public final class CreacionNaveController {
 
 
     /**
-     * Pre: ninguna.
-     * Post: no modifica el modelo.
+     - Pre: ninguna.
+     - Post: no modifica el modelo.
      *
-     * @return true si ya se creo la nave
+     - @return true si ya se creo la nave
      */
     public boolean fueCreada() {
         return creada;
     }
 
     /**
-     * Pre: ninguna.
-     * Post: no modifica el modelo.
+     - Pre: ninguna.
+     - Post: no modifica el modelo.
      *
-     * @return nave actual o null si no fue creada
+     - @return nave actual o null si no fue creada
      */
     public Nave getNave() {
         return creada ? universo.getNave() : null;
     }
 
     /**
-     * Devuelve la tripulacion ordenada por identidad.
+     - Devuelve la tripulacion ordenada por identidad.
      *
-     * Pre: ninguna.
-     * Post: no modifica la nave.
+     - Pre: ninguna.
+     - Post: no modifica la nave.
      *
-     * @return lista independiente de tripulantes
+     - @return lista independiente de tripulantes
      */
     public List<Tripulante> getTripulantes() {
 

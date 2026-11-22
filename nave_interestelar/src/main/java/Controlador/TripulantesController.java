@@ -1,4 +1,3 @@
-
 package Controlador;
 
 import java.text.Normalizer;
@@ -12,12 +11,12 @@ import modelo.Tripulacion.Consejero;
 import vista.Tripulantes.TripulacionObserver;
 
 /**
- * Controlador MVC de tripulantes y haberes.
+ - Controlador MVC de tripulantes y haberes.
  *
- * Invariantes:
- * - Los haberes se calculan desde el modelo.
- * - El origen utiliza el patron Decorator.
- * - El filtro seleccionado se conserva.
+ - Invariantes:
+ - - Los haberes se calculan desde el modelo.
+ - - El origen utiliza el patron Decorator.
+ - - El filtro seleccionado se conserva.
  */
 public class TripulantesController {
 
@@ -28,9 +27,21 @@ public class TripulantesController {
 
     private String filtroCargo = "Todos";
 
+    /**
+     * construye un controlador de tripulantes vacio con el filtro inicial en "Todos".<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> se inicializa la lista de tripulantes vacia, vista en null y filtroCargo en "Todos".<br>
+     */
     public TripulantesController() {
     }
 
+    /**
+     * construye un controlador de tripulantes cargando los tripulantes iniciales indicados.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> si tripulantesIniciales != null, agrega sus elementos a tripulantes; si es null, deja la lista vacia.<br>
+     *
+     * @param tripulantesIniciales lista inicial de tripulantes.
+     */
     public TripulantesController(
             List<Tripulante> tripulantesIniciales) {
 
@@ -41,12 +52,26 @@ public class TripulantesController {
         }
     }
 
+    /**
+     * asocia un observador de vista y le notifica la tripulacion filtrada actual.<br>
+     * <b>pre:</b> el controlador esta inicializado.<br>
+     * <b>post:</b> actualiza vista y notifica a la vista si no es nula.<br>
+     *
+     * @param vista observador de tripulacion a vincular.
+     */
     public void setVista(TripulacionObserver vista) {
 
         this.vista = vista;
         notificarVista();
     }
 
+    /**
+     * reemplaza la lista de tripulantes y notifica a la vista respetando el filtro actual.<br>
+     * <b>pre:</b> el controlador esta inicializado.<br>
+     * <b>post:</b> limpia tripulantes, agrega los elementos de nuevosTripulantes si no es null y notifica a la vista.<br>
+     *
+     * @param nuevosTripulantes nueva lista de tripulantes.
+     */
     public void setTripulantes(
             List<Tripulante> nuevosTripulantes) {
 
@@ -62,6 +87,14 @@ public class TripulantesController {
         notificarVista();
     }
 
+    /**
+     * agrega un tripulante a la lista y notifica a la vista.<br>
+     * <b>pre:</b> tripulante != null.<br>
+     * <b>post:</b> agrega tripulante a tripulantes y notifica a la vista.<br>
+     *
+     * @param tripulante tripulante a agregar. tripulante != null.
+     * @throws IllegalArgumentException si tripulante es null.
+     */
     public void agregarTripulante(
             Tripulante tripulante) {
 
@@ -77,11 +110,11 @@ public class TripulantesController {
     }
 
     /**
-     * Filtra por cargo, aceptando nombres
-     * con o sin tildes.
+     - Filtra por cargo, aceptando nombres
+     - con o sin tildes.
      *
-     * Pre: ninguna.
-     * Post: notifica la lista filtrada.
+     - Pre: ninguna.
+     - Post: notifica la lista filtrada.
      */
     public void filtrarPorCargo(String cargo) {
 
@@ -93,14 +126,14 @@ public class TripulantesController {
     }
 
     /**
-     * Registra un consejo en el modelo.
+     - Registra un consejo en el modelo.
      *
-     * Pre: tripulante != null.
+     - Pre: tripulante != null.
      *
-     * Post:
-     * - Si es Consejero, registra el consejo.
-     * - Su sueldo aumenta 2 PG.
-     * - Notifica a la vista.
+     - Post:
+     - - Si es Consejero, registra el consejo.
+     - - Su sueldo aumenta 2 PG.
+     - - Notifica a la vista.
      */
     public void registrarConsejo(
             Tripulante tripulante) {
@@ -116,11 +149,11 @@ public class TripulantesController {
     }
 
     /**
-     * Consulta los consejos registrados.
+     - Consulta los consejos registrados.
      *
-     * Post: no modifica el estado.
+     - Post: no modifica el estado.
      *
-     * @return cantidad de consejos
+     - @return cantidad de consejos
      */
     public int getConsejos(
             Tripulante tripulante) {
@@ -131,17 +164,17 @@ public class TripulantesController {
     }
 
     /**
-     * Calcula el haber total.
+     - Calcula el haber total.
      *
-     * Pre: ninguna.
+     - Pre: ninguna.
      *
-     * Post:
-     * - No modifica el tripulante.
-     * - Incluye antiguedad y subsidio por origen.
-     * - Incluye los consejos cuando corresponde.
-     * - No duplica ningun bono.
+     - Post:
+     - - No modifica el tripulante.
+     - - Incluye antiguedad y subsidio por origen.
+     - - Incluye los consejos cuando corresponde.
+     - - No duplica ningun bono.
      *
-     * @return haber total en PG
+     - @return haber total en PG
      */
     public double calcularHaberTotal(
             Tripulante tripulante) {
@@ -157,12 +190,17 @@ public class TripulantesController {
         return tripulante.getSueldoConOrigen();
     }
 
+    /**
+     * refresca la vista notificando la lista actual segun el filtro vigente.<br>
+     * <b>pre:</b> el controlador esta inicializado.<br>
+     * <b>post:</b> si vista != null, se le notifica la lista filtrada sin modificar el estado.<br>
+     */
     public void refrescar() {
         notificarVista();
     }
 
     /**
-     * Notifica a la vista respetando el filtro.
+     - Notifica a la vista respetando el filtro.
      */
     private void notificarVista() {
 
@@ -190,10 +228,10 @@ public class TripulantesController {
     }
 
     /**
-     * Elimina tildes y normaliza el texto.
+     - Elimina tildes y normaliza el texto.
      *
-     * Pre: ninguna.
-     * Post: devuelve una representacion normalizada.
+     - Pre: ninguna.
+     - Post: devuelve una representacion normalizada.
      */
     private static String normalizar(String texto) {
 

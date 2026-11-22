@@ -1,4 +1,3 @@
-
 package Controlador.Misiones;
 
 import java.util.ArrayList;
@@ -17,17 +16,17 @@ import modelo.misiones.Retorno;
 import modelo.nave.Nave;
 
 /**
- * Controlador MVC del ciclo de misiones.
+ - Controlador MVC del ciclo de misiones.
  *
- * Conserva los informes generados durante la ejecucion
- * del programa, sin persistirlos.
+ - Conserva los informes generados durante la ejecucion
+ - del programa, sin persistirlos.
  *
- * Invariantes:
- * - asistente != null.
- * - bitacora != null.
- * - listener != null.
- * - Solo una mision puede estar ejecutandose.
- * - El historial contiene informes no nulos.
+ - Invariantes:
+ - - asistente != null.
+ - - bitacora != null.
+ - - listener != null.
+ - - Solo una mision puede estar ejecutandose.
+ - - El historial contiene informes no nulos.
  */
 public class MisionController {
 
@@ -57,10 +56,13 @@ public class MisionController {
     private volatile boolean ejecutando;
 
     /**
-     * Constructor para pruebas independientes.
+     * construye un controlador de misiones para pruebas independientes utilizando la nave del asistente.<br>
+     * <b>pre:</b> asistente != null, bitacora != null, listener != null.<br>
+     * <b>post:</b> inicializa el controlador con proveedorNave en null.<br>
      *
-     * Pre: argumentos no nulos.
-     * Post: utiliza la nave del asistente.
+     * @param asistente asistente de comandos. asistente != null.
+     * @param bitacora bitacora de eventos. bitacora != null.
+     * @param listener oyente de eventos de mision. listener != null.
      */
     public MisionController(
             AsistenteDeComandos asistente,
@@ -71,16 +73,15 @@ public class MisionController {
     }
 
     /**
-     * Constructor para la ventana principal.
+     * construye un controlador de misiones para la ventana principal.<br>
+     * <b>pre:</b> asistente != null, bitacora != null, listener != null.<br>
+     * <b>post:</b> conserva las dependencias y el proveedor de nave si existe.<br>
      *
-     * Pre:
-     * - asistente != null.
-     * - bitacora != null.
-     * - listener != null.
-     *
-     * Post:
-     * - Conserva las dependencias.
-     * - Utiliza el proveedor de nave si existe.
+     * @param asistente asistente de comandos. asistente != null.
+     * @param bitacora bitacora de eventos. bitacora != null.
+     * @param listener oyente de eventos de mision. listener != null.
+     * @param proveedorNave proveedor de la nave activa, o null si no aplica.
+     * @throws IllegalArgumentException si asistente, bitacora o listener son null.
      */
     public MisionController(
             AsistenteDeComandos asistente,
@@ -104,16 +105,11 @@ public class MisionController {
     }
 
     /**
-     * Devuelve el historial de informes.
+     * devuelve el historial de informes generados en memoria.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> retorna una copia inmodificable del historial en orden cronologico sin alterar los originales.<br>
      *
-     * Pre: ninguna.
-     *
-     * Post:
-     * - Devuelve una copia inmodificable.
-     * - Mantiene el orden cronologico.
-     * - No modifica los informes originales.
-     *
-     * @return informes de esta ejecucion
+     * @return lista inmodificable de informes de esta ejecucion.
      */
     public List<InformeMision> obtenerHistorial() {
 
@@ -121,15 +117,11 @@ public class MisionController {
     }
 
     /**
-     * Consulta el estado de la nave seleccionada.
+     * consulta el estado de la nave seleccionada.<br>
+     * <b>pre:</b> ninguna.<br>
+     * <b>post:</b> sincroniza la nave en el asistente si hay proveedor y retorna la instantanea del estado sin modificar recursos.<br>
      *
-     * Pre: ninguna.
-     *
-     * Post:
-     * - Sincroniza el asistente cuando corresponde.
-     * - No modifica los recursos.
-     *
-     * @return descripcion de la nave
+     * @return descripcion del estado de la nave.
      */
     public String obtenerEstadoNave() {
 
@@ -148,24 +140,14 @@ public class MisionController {
     }
 
     /**
-     * Solicita ejecutar una mision.
+     * solicita ejecutar una mision de forma asincrona.<br>
+     * <b>pre:</b> tipo y parametros validos, nave creada y operativa, y tripulacion valida cuando existe proveedorNave.<br>
+     * <b>post:</b> rechaza ejecuciones simultaneas; si es valido, ejecuta la mision fuera del edt, guarda el informe si se genera y notifica a la vista en el edt.<br>
      *
-     * Pre:
-     * - Tipo y parametros validos.
-     * - Nave creada y operativa.
-     * - Tripulacion valida cuando se utiliza
-     *   el proveedor de la interfaz principal.
-     *
-     * Post:
-     * - Rechaza misiones simultaneas.
-     * - Ejecuta la mision fuera del EDT.
-     * - Guarda el informe generado.
-     * - Notifica a la vista en el EDT.
-     *
-     * @param indiceMision tipo de mision
-     * @param combustible transferencia para M-01
-     * @param energia transferencia para M-01
-     * @param gemas recompensa para M-02
+     * @param indiceMision tipo de mision (0: intercepcion, 1: recoleccion, 2: retorno).
+     * @param combustible transferencia de combustible para m-01.
+     * @param energia transferencia de energia para m-01.
+     * @param gemas recompensa de gemas para m-02.
      */
     public void ejecutarMision(
             int indiceMision,
@@ -326,12 +308,16 @@ public class MisionController {
     }
 
     /**
-     * Construye la mision correspondiente.
+     * construye la instancia de mision correspondiente al indice indicado.<br>
+     * <b>pre:</b> indiceMision valido (0, 1 o 2) y parametros validos para la mision seleccionada.<br>
+     * <b>post:</b> retorna una nueva instancia de Mision o lanza IllegalArgumentException si el indice o parametros no son validos.<br>
      *
-     * Pre: indice valido.
-     * Post: devuelve una nueva instancia.
-     *
-     * @return mision seleccionada
+     * @param indiceMision tipo de mision a crear.
+     * @param combustible transferencia de combustible para m-01.
+     * @param energia transferencia de energia para m-01.
+     * @param gemas recompensa de gemas para m-02.
+     * @return nueva instancia de mision creada.
+     * @throws IllegalArgumentException si indiceMision no es valido o los parametros no cumplen las restricciones de la mision.
      */
     private Mision crearMision(
             int indiceMision,

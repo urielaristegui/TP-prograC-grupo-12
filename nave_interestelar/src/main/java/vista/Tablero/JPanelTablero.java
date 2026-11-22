@@ -1,5 +1,5 @@
 
-package vista;
+package vista.Tablero;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
