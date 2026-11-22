@@ -550,24 +550,7 @@ A diferencia de las pruebas automáticas, esta verificación depende de la inter
 
 **Estado:** aplicación disponible para ejecución integral; pendiente de certificación manual completa.
 
-## 7. Lista de verificación manual antes de entregar
-
-- [ ] Ejecutar `MainApp` y verificar el inicio de la aplicación.
-- [ ] Registrar un usuario e iniciar sesión.
-- [ ] Crear los tres tipos de nave en escenarios independientes.
-- [ ] Verificar una tripulación válida de cinco integrantes.
-- [ ] Comprobar la visualización de haberes y subsidios por origen.
-- [ ] Revisar el tablero dinámico y el movimiento de elementos.
-- [ ] Comprobar las actualizaciones del panel de recursos.
-- [ ] Ejecutar M-01 y verificar la transferencia a la nave aliada.
-- [ ] Ejecutar M-02 y verificar la recolección de gemas.
-- [ ] Ejecutar M-03 y verificar el retorno y la recarga.
-- [ ] Revisar los informes e historial de misiones.
-- [ ] Abrir el Visor Recóndito y agregar productores y consumidores.
-- [ ] Verificar que la interfaz siga respondiendo durante las operaciones concurrentes.
-- [ ] Compilar y ejecutar el proyecto en el equipo que se utilizará para la entrega o exposición.
-
-## 8. Resumen final de resultados
+## 7. Resumen final de resultados
 
 | Categoría | Cantidad | Estado |
 |---|---:|---|
@@ -583,7 +566,7 @@ Las nueve pruebas automáticas principales fueron ejecutadas satisfactoriamente 
 
 Las cinco demostraciones adicionales están incluidas en el repositorio y permiten observar aspectos específicos del sistema, aunque sus verificaciones visuales y manuales deben completarse antes de la entrega.
 
-## 9. Conclusión
+## 8. Conclusión
 
 La batería de pruebas permite verificar los principales componentes del Sistema de Nave Interestelar y ofrece evidencias reproducibles de su funcionamiento.
 
