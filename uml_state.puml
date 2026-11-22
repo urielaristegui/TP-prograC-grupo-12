@@ -1,48 +1,71 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
 
-package "Patrón State (Motor Warp)" {
-    interface State <<interface>> {
-        + prepararSalto()
-        + entrarEnWarp()
-        + iniciarEnfriamiento()
-        + volverADisponible()
-    }
-
-    class MotorWarp {
-        - State state
-        + setState(state: State)
-        + prepararSalto()
-        + entrarEnWarp()
-        + iniciarEnfriamiento()
-        + volverAlDisponible()
-        + estaDisponible(): boolean
-        + estaPreparando(): boolean
-        + estaEnEnfriamiento(): boolean
-    }
-
-    class Disponible implements State {
-        - MotorWarp motorWarp
-        + prepararSalto()
-    }
-    class PreparandoSalto implements State {
-        - MotorWarp motorWarp
-        + entrarEnWarp()
-    }
-    class EnWarp implements State {
-        - MotorWarp motorWarp
-        + iniciarEnfriamiento()
-    }
-    class Enfriamento implements State {
-        - MotorWarp motorWarp
-        + volverADisponible()
-    }
+interface State <<interface>> {
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverADisponible(): void
 }
 
-MotorWarp o-- State : estado actual
-Disponible --> MotorWarp
-PreparandoSalto --> MotorWarp
-EnWarp --> MotorWarp
-Enfriamento --> MotorWarp
+class MotorWarp <<Context>> {
+    - state: State
+    - turnosPreparacion: int
+    - turnosEnfriamiento: int
+    + MotorWarp()
+    + setState(state: State): void
+    + getState(): State
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverAlDisponible(): void
+    + estaDisponible(): boolean
+    + estaPreparando(): boolean
+    + estaEnEnfriamiento(): boolean
+    + estaListoParaSaltar(): boolean
+}
 
+class Disponible <<ConcreteState>> implements State {
+    - motorWarp: MotorWarp
+    + Disponible(motorWarp: MotorWarp)
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverADisponible(): void
+}
+
+class PreparandoSalto <<ConcreteState>> implements State {
+    - motorWarp: MotorWarp
+    + PreparandoSalto(motorWarp: MotorWarp)
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverADisponible(): void
+}
+
+class EnWarp <<ConcreteState>> implements State {
+    - motorWarp: MotorWarp
+    + EnWarp(motorWarp: MotorWarp)
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverADisponible(): void
+}
+
+class Enfriamento <<ConcreteState>> implements State {
+    - motorWarp: MotorWarp
+    + Enfriamento(motorWarp: MotorWarp)
+    + prepararSalto(): void
+    + entrarEnWarp(): void
+    + iniciarEnfriamiento(): void
+    + volverADisponible(): void
+}
+
+MotorWarp o--> "1" State : state
+Disponible --> "1" MotorWarp : motorWarp
+PreparandoSalto --> "1" MotorWarp : motorWarp
+EnWarp --> "1" MotorWarp : motorWarp
+Enfriamento --> "1" MotorWarp : motorWarp
 @enduml

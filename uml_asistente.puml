@@ -1,25 +1,42 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
+skinparam packageStyle rect
 
-package "AsistenteDeComandos)" {
+
     class AsistenteDeComandos {
-        - Nave nave
-        - Bitacora bitacora
-        - Tablero tablero
-        - ReglasNavegacion reglas
-        + avanzarHacia(destino: Posicion)
-        + interactuarCon(elemento: ElementoDelUniverso)
-        + registrarEvento(evento: String)
+        - nave: Nave
+        - bitacora: Bitacora
+        - tablero: Tablero
+        - destino: Destino
+        - reglas: ReglasNavegacion
+        - base: Posicion
+        + AsistenteDeComandos(nave: Nave, bitacora: Bitacora)
+        + AsistenteDeComandos(nave: Nave, bitacora: Bitacora, tablero: Tablero)
+        + setTablero(tablero: Tablero): void
+        + avanzarHacia(destinoFinal: Posicion): void
+        + interactuarCon(elemento: ElementoDelUniverso): void
+        + registrarEvento(evento: String): void
+        + posicionNave(): Posicion
+        + naveDestruida(): boolean
     }
 
     class Nave
     class Bitacora <<Singleton>>
     class Tablero
+    class Destino
     class ReglasNavegacion
-}
+    class Posicion
 
-AsistenteDeComandos --> Nave : coordina
-AsistenteDeComandos --> Bitacora : registra
-AsistenteDeComandos --> Tablero : actualiza
-AsistenteDeComandos --> ReglasNavegacion : delega movimiento
+
+' Relaciones de Coordinación y Delegación
+AsistenteDeComandos --> "1" Nave : coordina
+AsistenteDeComandos --> "1" Bitacora : registra
+AsistenteDeComandos --> "0..1" Tablero : actualiza
+AsistenteDeComandos --> "0..1" Destino : coordina turnos
+AsistenteDeComandos --> "0..1" ReglasNavegacion : delega movimiento
+AsistenteDeComandos ..> Posicion : usa
+
+
 @enduml

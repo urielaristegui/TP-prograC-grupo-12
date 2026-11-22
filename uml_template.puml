@@ -1,90 +1,89 @@
 @startuml
 skinparam classAttributeIconSize 0
 
-package "Patrón Template Method (Misiones)" {
-    abstract class Mision <<abstract>> {
-        # AsistenteDeComandos AC
-        # ResultadoMision resultado
-        # InformeMision informe
-        + Mision(AC: AsistenteDeComandos)
-        + final boolean director()
-        # boolean preparar()
-        # {abstract} boolean ejecutar()
-        # {abstract} void evalar()
-        # void cerrar()
-        + InformeMision getInforme()
-        # {abstract} int getCombustibleRequerido()
-        # {abstract} int getEnergiaRequerida()
-        # {abstract} int getDesgasteGenerado()
-    }
 
-    class Intercepcion extends Mision {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Intercepcion(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
-    }
+  enum ResultadoMision {
+    EXITOSA
+    FALLIDA
+  }
 
-    class Recoleccion extends Mision {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Recoleccion(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
-    }
+  class InformeMision {
+    - misionEjecutada : String
+    - resultado : ResultadoMision
+    - accionesPrincipales : List<String>
+    - recursosConsumidos : String
+    - estadoNave : String
+    - observaciones : String
+    + InformeMision(misionEjecutada : String,
+    resultado : ResultadoMision,
+    accionesPrincipales : List<String>,
+    recursosConsumidos : String, estadoNave : String,
+    observaciones : String)
+    + toString() : String
+  }
 
-    class Retorno extends Mision {
-        - int energiaRequerida
-        - int combustibleRequerido
-        - int desgaste
-        + Retorno(AC: AsistenteDeComandos, combustible: int, energia: int, desgaste: int)
-        # int getCombustibleRequerido()
-        # int getEnergiaRequerida()
-        # int getDesgasteGenerado()
-        # boolean ejecutar()
-        # void evalar()
-    }
+  abstract class Mision {
+    # AC : AsistenteDeComandos
+    # resultado : ResultadoMision
+    # informe : InformeMision
+    - acciones : List<String>
+    - ruta : List<Posicion>
+    - recorrido : List<Posicion>
+    - objetivo : Posicion
+    - llegoAlDestino : boolean
+    - motivoFallo : String
+    - combustibleInicial : int
+    - energiaInicial : int
+    - desgasteInicial : int
+    + Mision(AC : AsistenteDeComandos)
+    + {final} director() : boolean
+    # preparar() : boolean
+    # ejecutar() : void
+    # evaluar() : ResultadoMision
+    # cerrar() : void
+    # registrar(accion : String) : void
+    # {abstract} definirObjetivo() : Posicion
+    # {abstract} verificarEnDestino() : boolean
+    # {abstract} aplicarCierre() : void
+    # {abstract} describirCierre() : String
+  }
 
-    enum ResultadoMision {
-        EXITOSA
-        FALLIDA
-    }
+  class Intercepcion {
+    - combustibleSolicitado : int
+    - energiaSolicitada : int
+    + Intercepcion(AC : AsistenteDeComandos,
+    combustibleSolicitado : int, energiaSolicitada : int)
 
-    class InformeMision {
-        - final String misionEjecutada
-        - final ResultadoMision resultado
-        - final List<String> acionesPrincipales
-        - final String recursosConsumidos
-        - final String estadoNave
-        - final String observaciones
-        + InformeMision(...)
-        + String toString()
-    }
+  }
 
-    class AsistenteDeComandos {
-        + avanzarHacia(destino: Posicion)
-        + interactuarCon(elemento: ElementoDelUniverso)
-        + registrarEvento(evento: String)
-    }
+  class Recoleccion {
+    - gemas : int
+    + Recoleccion(AC : AsistenteDeComandos)
+    + Recoleccion(AC : AsistenteDeComandos, gemas : int)
 
-    class Bitacora <<Singleton>> {
-        + static Bitacora getInstance()
-        + registrar(evento: String)
-    }
-}
+  }
 
-Mision o-- AsistenteDeComandos : coordina con
-Mision *-- InformeMision : genera al cerrar
-Mision *-- ResultadoMision : almacena estado
-Mision ..> Bitacora : registra eventos
+  class Retorno {
+    + Retorno(AC : AsistenteDeComandos)
+  }
+
+  Mision <|-- Intercepcion
+  Mision <|-- Recoleccion
+  Mision <|-- Retorno
+
+  Mision --> ResultadoMision : resultado
+  InformeMision --> ResultadoMision : resultado
+  Mision ..> InformeMision : genera
+
+
+  class AsistenteDeComandos
+
+  class Posicion
+
+Mision --> AsistenteDeComandos : AC
+Mision --> Posicion
+Intercepcion ..> Posicion : usa
+Recoleccion ..> Posicion : usa
+Retorno ..> Posicion : usa
 
 @enduml

@@ -1,29 +1,41 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam style strictuml
 
-package "Patrón Factory (Creación de Naves)" {
-    class NaveFactory {
-        - NaveFactory()
-        + static crearNave(tipo: TipoNave, id: int): Nave
-    }
-
-    enum TipoNave {
-        CARGUERO
-        COMBATE
-        EXPLORADORA
-    }
-
-    abstract class Nave {
-        - int id
-        - int combustible
-        - int energia
-    }
-
-    class NaveCarguero extends Nave
-    class NaveCombate extends Nave
-    class NaveExploradora extends Nave
+enum TipoNave <<enum>> {
+    CARGUERO
+    COMBATE
+    EXPLORADORA
 }
 
-NaveFactory ..> Nave : instancia
+class NaveFactory <<Factory>> {
+    - NaveFactory()
+    + {static} crearNave(tipo: TipoNave, id: int): Nave
+}
+
+abstract class Nave <<Producto>> {
+    - id: int
+    - combustible: int
+    - energia: int
+    # Nave(id: int, combustible: int, energia: int)
+    + getId(): int
+    + getCombustible(): int
+    + getEnergia(): int
+}
+
+class NaveCarguero <<ConcreteProduct>> extends Nave {
+    ~ NaveCarguero(id: int)
+}
+
+class NaveCombate <<ConcreteProduct>> extends Nave {
+    ~ NaveCombate(id: int)
+}
+
+class NaveExploradora <<ConcreteProduct>> extends Nave {
+    ~ NaveExploradora(id: int)
+}
+
+NaveFactory ..> Nave : crea / instancia
 NaveFactory ..> TipoNave : usa
 @enduml
