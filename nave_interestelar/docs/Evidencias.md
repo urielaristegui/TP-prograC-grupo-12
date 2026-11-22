@@ -1,145 +1,300 @@
 # Evidencias de pruebas — Sistema de Nave Interestelar
 
 **Trabajo Práctico Grupal — Programación C — Grupo 12**  
-**Partes 1 y 2 — revisión del 22/11/2026**
+**Partes 1 y 2 — Revisión del 22/11/2026**
 
 ## 1. Objetivo y alcance
 
-Este documento reúne las comprobaciones realizadas sobre la versión del proyecto incluida en `TP-prograC-grupo-12-main (14).zip`. El objetivo es demostrar el comportamiento de los módulos principales y permitir la reproducción de las pruebas antes de la entrega.
+Este documento reúne las verificaciones realizadas sobre el Sistema de Nave Interestelar, desarrollado como Trabajo Práctico Grupal de Programación C.
 
-Se distingue entre **pruebas automáticas ejecutadas**, **demostraciones visuales disponibles** y **verificaciones manuales aún no certificadas**. Las salidas de versiones anteriores y los avisos de pendientes correspondientes a aquellas versiones se reemplazan por los resultados actuales.
+Su finalidad es documentar el funcionamiento de los módulos principales, los resultados obtenidos y los procedimientos necesarios para reproducir las pruebas.
 
-## 2. Entorno y procedimiento de verificación
+Se distinguen tres categorías:
 
-- **Lenguaje:** Java.
-- **Entorno utilizado para esta auditoría:** OpenJDK 21, compilación con `javac --release 21 -encoding UTF-8`.
-- **Archivos compilados:** 90 archivos `.java` de `nave_interestelar/src/main/java`.
-- **Compilación:** correcta, sin errores.
-- **Ejecución:** clases del paquete `Pruebas`, cada una mediante su método `main()`; sin JUnit.
-- **Resultado global:** 9 de 9 pruebas automáticas principales finalizaron correctamente.
+- **Pruebas automáticas:** ejecutan verificaciones y generan errores si alguna condición no se cumple.
+- **Pruebas visuales y demostraciones auxiliares:** permiten observar el comportamiento del sistema, pero requieren inspección manual de los resultados.
+- **Prueba integral:** ejecución de la aplicación completa mediante `MainApp`.
 
-Para reproducirlas en IntelliJ IDEA: abrir el proyecto, configurar un JDK compatible, compilar y ejecutar el método `main()` de cada clase indicada en la tabla siguiente. Cada prueba utiliza comprobaciones que lanzan excepciones o errores si se incumplen sus condiciones; un texto `[OK]` por sí solo no reemplaza esas comprobaciones.
+Las evidencias corresponden a la versión revisada del proyecto `TP-prograC-grupo-12-main (14).zip`.
 
-**Nota de entorno:** el `pom.xml` incluido en esta versión especifica compilación con Java 26. La verificación indicada arriba se realizó directamente con `javac` de Java 21, **no con Maven**. Para reproducir la compilación mediante Maven hay que utilizar un JDK compatible con `pom.xml` o actualizar esa configuración.
+## 2. Entorno de verificación
 
-## 3. Resumen de pruebas automáticas
+El proyecto está implementado en Java y utiliza Java Swing para la interfaz gráfica.
 
-Todas las clases se encuentran en `nave_interestelar/src/main/java/Pruebas/`.
+La revisión automática se realizó con las siguientes condiciones:
 
-| Clase | Aspectos verificados | Resultado |
+| Característica | Valor |
+|---|---|
+| Lenguaje | Java |
+| JDK utilizado | OpenJDK 21 |
+| Compilación | `javac --release 21 -encoding UTF-8` |
+| Archivos Java compilados | 90 |
+| Pruebas automáticas principales | 9 |
+| Pruebas automáticas aprobadas | 9 |
+| Framework de pruebas | Métodos `main()` y verificaciones propias |
+
+La compilación finalizó sin errores.
+
+**Consideración:** el archivo `pom.xml` de la versión revisada especifica Java 26. Las comprobaciones indicadas se realizaron directamente mediante `javac` con Java 21, no mediante Maven. Para compilar con Maven es necesario utilizar una versión de JDK compatible con la configuración del proyecto o actualizar dicha configuración.
+
+## 3. Inventario completo de pruebas
+
+Todas las pruebas están ubicadas en:
+
+`nave_interestelar/src/main/java/Pruebas/`
+
+### 3.1. Pruebas automáticas
+
+| Clase | Funcionalidad principal | Resultado |
 |---|---|---|
-| `EscenarioC` | State; dos turnos de preparación; Warp con consumo de 5 de energía; desgaste de 3 durante el enfriamiento; regreso a salto normal | **APROBADA** |
-| `EscenarioD` | Límites de combustible y energía; rechazo de consumos inválidos sin efectos parciales; mantenimiento | **APROBADA** |
-| `PruebaHaberes` | Cuatro cargos; 12 combinaciones de subsidios planetarios; reemplazo de origen; rechazo de origen nulo | **APROBADA** |
-| `PruebaUniverso` | Tablero 20×20; sincronización de posiciones; asteroides, estaciones, gemas y anomalías; límites; destrucción | **APROBADA** |
-| `Prueba_reglas` | Sensores 3×3 y 5×5; planificación de ruta; movimientos y consumos exactos; bordes; bitácora | **APROBADA** |
-| `PruebaMisiones` | M-01, M-02 y M-03; recursos, objetivos, operaciones de cierre e informes; rechazo por recursos insuficientes | **APROBADA** |
-| `PruebaDoubleDispatch` | Matriz completa de 9 enfrentamientos; efectos de derrota; encuentros inválidos | **APROBADA** |
-| `PruebaMonitores` | Capacidad del recurso compartido; productor/consumidor bloqueados y desbloqueados; 400 depósitos y 400 retiros | **APROBADA** |
-| `PruebaPersistenciaDAO` | Registro, duplicados, búsqueda, autenticación, DTO, persistencia tras reabrir y cierre de sesión | **APROBADA** |
+| `EscenarioC` | Motor Warp y patrón State | APROBADA |
+| `EscenarioD` | Recursos, contratos y mantenimiento | APROBADA |
+| `PruebaHaberes` | Haberes y patrón Decorator | APROBADA |
+| `PruebaUniverso` | Tablero e interacciones | APROBADA |
+| `Prueba_reglas` | Sensores y navegación | APROBADA |
+| `PruebaMisiones` | M-01, M-02, M-03 e informes | APROBADA |
+| `PruebaDoubleDispatch` | Nueve combinaciones de combate | APROBADA |
+| `PruebaMonitores` | Productor–Consumidor y sincronización | APROBADA |
+| `PruebaPersistenciaDAO` | DAO, DTO y autenticación | APROBADA |
 
-## 4. Evidencias por módulo
+Estas nueve pruebas fueron ejecutadas correctamente durante la revisión del proyecto.
 
-### 4.1. Motor Warp — `EscenarioC`
+### 3.2. Pruebas visuales y demostraciones auxiliares
 
-La prueba confirma que los dos primeros turnos preparan el salto sin consumir energía; en el tercero se ejecuta el Warp y se descuentan **5 unidades de energía**, sin desgaste inmediato; en el cuarto se procesa el **enfriamiento y se suman exactamente 3 puntos de desgaste**. A continuación, el motor vuelve a permitir un salto normal, que consume 2 unidades de combustible.
+| Clase | Tipo | Funcionalidad |
+|---|---|---|
+| `PruebaJPanelTablero` | Visual | Representación y actualización del tablero |
+| `PruebaPanelMisiones` | Visual | Interfaz gráfica de misiones |
+| `pruebaPanelConcurrencia` | Visual | Visor Recóndito y simulación concurrente |
+| `PruebaJPanelTablero.PruebaPersistencia` | Visual | Registro e inicio de sesión |
+| `PruebaPanelMisiones.Prueba` | Consola | Creación de nave, tripulación y operaciones básicas |
 
-**Salida final registrada:**
+Las dos últimas son **clases internas**: no poseen un archivo Java independiente, sino que están declaradas dentro de `PruebaJPanelTablero.java` y `PruebaPanelMisiones.java`, respectivamente.
 
-```text
-[OK] State, preparacion, Warp, enfriamiento y salto normal
-```
+Estas demostraciones están disponibles en el repositorio, pero no forman parte de las nueve pruebas automáticas aprobadas.
 
-### 4.2. Contratos y recursos — `EscenarioD`
+### 3.3. Prueba integral
 
-Se verificaron el rechazo de cargas por encima de la capacidad, la ausencia de cambios parciales al intentar consumir recursos insuficientes y la operación de mantenimiento: con desgaste 80, el desgaste vuelve a 0 y el combustible y la energía permanecen en 55 y 75, respectivamente.
+**Clase:** `MainApp`
 
-**Salida final registrada:**
+**Ruta:** `nave_interestelar/src/main/java/MainApp.java`
 
-```text
-[OK] Contratos, atomicidad y mantenimiento verificados
-```
+Permite ejecutar el sistema completo, incluyendo autenticación, creación de naves, tripulación, navegación, misiones y concurrencia.
 
-### 4.3. Haberes y Decorator — `PruebaHaberes`
+La prueba integral requiere una revisión manual de las pantallas y sus operaciones.
 
-Se comprobaron los haberes de los cuatro cargos con los siguientes valores en el escenario preparado por la prueba:
+## 4. Evidencias de las pruebas automáticas
 
-| Cargo | Haber comprobado |
+### 4.1. `EscenarioC` — Patrón State y Motor Warp
+
+**Objetivo:** verificar el ciclo completo de funcionamiento del Motor Warp.
+
+Se comprueba:
+
+- Dos turnos de preparación sin desplazamiento ni consumo de energía.
+- Ejecución del salto Warp en el tercer turno.
+- Consumo de exactamente 5 unidades de energía.
+- Ausencia de desgaste antes del enfriamiento.
+- Aplicación de exactamente 3 puntos de desgaste durante el enfriamiento.
+- Regreso al estado Disponible.
+- Ejecución posterior de un salto normal con consumo de 2 unidades de combustible.
+
+**Resultado registrado:**
+
+`[OK] State, preparacion, Warp, enfriamiento y salto normal`
+
+**Estado:** APROBADA.
+
+### 4.2. `EscenarioD` — Contratos y mantenimiento
+
+**Objetivo:** comprobar que las operaciones sobre recursos respeten sus restricciones.
+
+Se verifican:
+
+- Rechazo de cargas superiores a la capacidad.
+- Rechazo de consumos cuando los recursos son insuficientes.
+- Ausencia de modificaciones parciales ante operaciones inválidas.
+- Funcionamiento del mantenimiento.
+- Conservación de los recursos que no deben modificarse.
+
+En el escenario de mantenimiento, una nave con desgaste 80 termina con desgaste 0 y conserva los valores de combustible y energía esperados.
+
+**Resultado registrado:**
+
+`[OK] Contratos, atomicidad y mantenimiento verificados`
+
+**Estado:** APROBADA.
+
+### 4.3. `PruebaHaberes` — Cálculo de salarios y Decorator
+
+**Objetivo:** verificar los haberes de los distintos cargos y los subsidios según el origen planetario.
+
+Se comprueban los siguientes haberes en el escenario definido:
+
+| Cargo | Haber |
 |---|---:|
 | Capitán | 1400 PG |
 | Consejero | 664 PG |
 | Teniente | 424 PG |
 | Alférez | 202 PG |
 
-Se verificaron las **12 combinaciones** de los cuatro cargos con los tres orígenes: Terrícola (+20 PG), Marciano (+18 PG) y Vulcano (+30 PG). Además, se comprobó que `asignarOrigen()` **reemplaza** el subsidio previo en lugar de acumular orígenes incompatibles, y que se rechaza un origen nulo.
+También se verifican las 12 combinaciones entre los cuatro cargos y los tres orígenes planetarios:
 
-**Salida final registrada:**
+| Origen | Subsidio |
+|---|---:|
+| Terrícola | +20 PG |
+| Marciano | +18 PG |
+| Vulcano | +30 PG |
 
-```text
-[OK] Cuatro cargos, doce subsidios y reemplazo de origen
-=== FIN DE PRUEBA DE HABERES ===
-```
+La prueba comprueba que:
 
-Esta prueba demuestra el comportamiento de los cálculos y del Decorator por origen. No se usa como prueba de composición de decoradores de conceptos salariales diferentes; ese alcance debe contrastarse con el enunciado original de la Parte 1 si fuera necesario.
+- Cada decorador incorpora el subsidio correspondiente.
+- `asignarOrigen()` reemplaza el origen anterior.
+- No se acumulan subsidios de planetas diferentes.
+- El cambio de origen no modifica el salario base del cargo.
+- Se rechaza un origen nulo.
 
-### 4.4. Universo e interacciones — `PruebaUniverso`
+**Resultado registrado:**
 
-Se verificaron el tablero de 20×20, la posición inicial del jugador, la sincronización de las posiciones enemigas antes y después de un turno, los efectos de asteroides y anomalías, la recuperación de energía y combustible en estaciones, la recolección de gemas sin duplicación, un encuentro entre Exploradora y Carguero, los límites del tablero y la destrucción por asteroide fatal.
+`[OK] Cuatro cargos, doce subsidios y reemplazo de origen`
 
-**Salida final registrada:**
+**Estado:** APROBADA.
 
-```text
-OK - Posicion enemiga sincronizada tras el turno
-OK - No permite salir del tablero
-OK - Asteroide fatal destruye la nave
+**Alcance:** esta prueba demuestra el funcionamiento de Decorator aplicado al origen planetario. No constituye una prueba de composición de conceptos salariales diferentes, cuyo alcance debe contrastarse con el enunciado original de la Parte 1.
 
-=== TODAS LAS PRUEBAS PASARON ===
-```
+### 4.4. `PruebaUniverso` — Tablero e interacciones
 
-### 4.5. Sensores y navegación — `Prueba_reglas`
+**Objetivo:** verificar el comportamiento del universo dinámico y sus elementos.
 
-Sobre un escenario controlado se comprobaron las dimensiones de los radares (**3×3 y 5×5**), el escaneo sin consumo de recursos, la planificación de una ruta libre de tres pasos, tres movimientos con las posiciones y consumos esperados, la coincidencia entre posición de la nave y tablero, la ausencia de gasto adicional estando en el destino, las lecturas cerca de los bordes y el registro de eventos en la bitácora.
+Se comprueba:
 
-**Salida final registrada:**
+- Creación del tablero de 20×20.
+- Posición inicial de la nave.
+- Sincronización entre posiciones del tablero y de las naves.
+- Movimiento de elementos mediante `Destino`.
+- Interacción con asteroides.
+- Interacción con estaciones de carga.
+- Recolección de gemas sin duplicación.
+- Interacción con anomalías.
+- Encuentros entre naves.
+- Restricciones de movimiento en los límites del tablero.
+- Destrucción de la nave ante un daño fatal.
 
-```text
-[OK] Sensores 3x3 y 5x5 sin efectos secundarios
-[OK] Ruta de tres pasos planificada con radar
-[OK] Tres movimientos, posiciones y consumos exactos
-[OK] Permanecer en destino no consume recursos
-[OK] Ambos sensores funcionan en los bordes
-[OK] Eventos del radar y ruta en Bitacora
+**Resultados registrados:**
 
-[OK] TODAS LAS PRUEBAS DE SENSORES Y NAVEGACION PASARON
-```
+`OK - Posicion enemiga sincronizada tras el turno`
 
-### 4.6. Misiones y Template Method — `PruebaMisiones`
+`OK - No permite salir del tablero`
 
-Las misiones se ejecutaron en **contextos independientes** para evitar que el gasto de una afecte a otra.
+`OK - Asteroide fatal destruye la nave`
 
-- **M-01 Intercepción:** llegada a la posición de la nave aliada; transferencia de 10 de combustible y 10 de energía; comprobación del informe exitoso.
-- **M-02 Recolección:** incorporación de exactamente 50 gemas; comprobación del balance y del informe exitoso.
-- **M-03 Retorno:** regreso a la base; combustible y energía en 100; desgaste en 0; comprobación del informe exitoso.
-- **Preparación fallida:** se rechaza la misión por combustible insuficiente; no hay consumo ni movimiento parcial; se genera un informe de resultado fallido.
+`=== TODAS LAS PRUEBAS PASARON ===`
 
-También se verifican datos relevantes de los informes: nombre y resultado, acciones principales, balance de recursos, estado final y observaciones.
+**Estado:** APROBADA.
 
-**Salida final registrada:**
+### 4.5. `Prueba_reglas` — Sensores y navegación
 
-```text
-[OK] M-01: llegada, transferencia e informe exitoso
-[OK] M-02: 50 gemas incorporadas e informe exitoso
-[OK] M-03: retorno, recarga total y mantenimiento
-[OK] Preparacion rechazada sin efectos parciales
+**Objetivo:** verificar la integración entre sensores, reglas de navegación, asistente de comandos y tablero.
 
-[OK] Todas las pruebas de misiones pasaron
-```
+Se utiliza un escenario controlado para evitar que los resultados dependan del azar.
 
-La clase se ejecutó **3 veces correctamente** durante esta auditoría (una ejecución inicial y dos repeticiones).
+Se comprueba:
 
-### 4.7. Enfrentamientos — `PruebaDoubleDispatch`
+- Radar de corto alcance de 3×3.
+- Radar de largo alcance de 5×5.
+- Escaneos sin consumo de recursos ni movimiento de la nave.
+- Planificación de una ruta libre de tres pasos.
+- Tres movimientos con posiciones exactas.
+- Consumo de 2 unidades de combustible por salto normal.
+- Sincronización de posiciones entre nave y tablero.
+- Ausencia de consumo adicional al alcanzar el objetivo.
+- Funcionamiento de los sensores en los bordes.
+- Registro de eventos de navegación y sensores en la bitácora.
 
-Se verificaron todas las combinaciones de naves, desde la perspectiva de la nave propia:
+**Resultados registrados:**
+
+`[OK] Sensores 3x3 y 5x5 sin efectos secundarios`
+
+`[OK] Ruta de tres pasos planificada con radar`
+
+`[OK] Tres movimientos, posiciones y consumos exactos`
+
+`[OK] Permanecer en destino no consume recursos`
+
+`[OK] Ambos sensores funcionan en los bordes`
+
+`[OK] Eventos del radar y ruta en Bitacora`
+
+**Estado:** APROBADA.
+
+### 4.6. `PruebaMisiones` — Template Method y misiones
+
+**Objetivo:** verificar el funcionamiento de las tres misiones y sus informes.
+
+Cada escenario utiliza su propia nave y tablero para evitar dependencias entre pruebas.
+
+**M-01 — Intercepción**
+
+Se verifica:
+
+- Preparación correcta.
+- Llegada a la posición de la nave aliada.
+- Transferencia de 10 unidades de combustible.
+- Transferencia de 10 unidades de energía.
+- Generación de un informe exitoso.
+
+**M-02 — Recolección**
+
+Se verifica:
+
+- Preparación y ejecución correctas.
+- Incorporación de exactamente 50 gemas.
+- Registro de la recompensa en el balance de recursos.
+- Generación del informe exitoso.
+
+**M-03 — Retorno**
+
+Se verifica:
+
+- Inicio desde una posición distinta de la base.
+- Regreso a la base de origen.
+- Combustible final en 100.
+- Energía final en 100.
+- Desgaste final en 0.
+- Generación del informe exitoso.
+
+**Preparación fallida**
+
+Se verifica:
+
+- Rechazo de una misión con combustible insuficiente.
+- Ausencia de consumos parciales.
+- Conservación de la posición.
+- Generación de un informe fallido con el motivo correspondiente.
+
+Además, la prueba comprueba la presencia de las acciones principales, los recursos, el resultado, el estado final y las observaciones de los informes.
+
+**Resultados registrados:**
+
+`[OK] M-01: llegada, transferencia e informe exitoso`
+
+`[OK] M-02: 50 gemas incorporadas e informe exitoso`
+
+`[OK] M-03: retorno, recarga total y mantenimiento`
+
+`[OK] Preparacion rechazada sin efectos parciales`
+
+`[OK] Todas las pruebas de misiones pasaron`
+
+**Estado:** APROBADA.
+
+Durante la revisión se ejecutó tres veces correctamente.
+
+### 4.7. `PruebaDoubleDispatch` — Enfrentamientos entre naves
+
+**Objetivo:** verificar las nueve combinaciones de combate mediante Double Dispatch.
+
+Se utiliza la siguiente matriz desde la perspectiva de la nave propia:
 
 | Nave propia / Rival | Exploradora | Carguero | Combate |
 |---|---|---|---|
@@ -147,80 +302,297 @@ Se verificaron todas las combinaciones de naves, desde la perspectiva de la nave
 | Carguero | Pierde | Pacto de paz | Gana |
 | Combate | Gana | Pierde | Pacto de paz |
 
-También se comprobó que la derrota destruye la nave propia, que ganar o pactar conserva los recursos y la tripulación, y que se rechazan rivales nulos, el autoenfrentamiento y la participación de naves destruidas.
+Además de comprobar los resultados, se verifica que:
 
-**Salida final registrada:**
+- `enfrentar()` no modifique directamente los recursos.
+- Perder destruya la nave propia.
+- La destrucción afecte los recursos y la tripulación.
+- Ganar o pactar conserve el estado de la nave.
+- Se rechacen encuentros con rivales nulos.
+- Se rechace el autoenfrentamiento.
+- Las naves destruidas no puedan participar en combates.
 
-```text
-[OK] 9/9 enfrentamientos y validaciones correctas
-```
+**Resultado registrado:**
 
-### 4.8. Productor–Consumidor — `PruebaMonitores`
+`[OK] 9/9 enfrentamientos y validaciones correctas`
 
-Se verificó directamente el monitor `PlataformaDeCarga`: capacidad máxima, depósitos y retiros, espera de un productor con la plataforma llena y su desbloqueo al retirar una batería, espera de un consumidor con la plataforma vacía y su desbloqueo al depositar una batería.
+**Estado:** APROBADA.
 
-La prueba concurrente ejecutó **4 productores y 4 consumidores**, con 100 operaciones por hilo: **400 depósitos, 400 retiros**, respeto del rango de capacidad y balance final de 0 baterías.
+### 4.8. `PruebaMonitores` — Productor–Consumidor
 
-**Salida final registrada:**
+**Objetivo:** verificar la sincronización de la Plataforma de Carga mediante monitores de Java.
 
-```text
-[OK] Depositos, retiros y capacidad
-[OK] Productor espera y se desbloquea
-[OK] Consumidor espera y se desbloquea
-[OK] 400 depositos, 400 retiros, 8 hilos
-[OK] Capacidad respetada y balance final: 0
+Se comprueba:
 
-[OK] TODAS LAS PRUEBAS DE MONITORES PASARON
-```
+- Capacidad máxima de la plataforma.
+- Depósitos y retiros básicos.
+- Espera de productores cuando la plataforma está llena.
+- Desbloqueo de productores cuando se libera espacio.
+- Espera de consumidores cuando la plataforma está vacía.
+- Desbloqueo de consumidores cuando se deposita una batería.
+- Respeto de la capacidad durante las operaciones concurrentes.
+- Balance final de baterías.
 
-La clase se ejecutó **13 veces correctamente** durante esta auditoría (una ejecución inicial y doce repeticiones). Esto respalda el comportamiento observado, aunque no constituye una demostración formal de ausencia de fallas bajo cualquier intercalación de hilos.
+**Prueba concurrente:**
 
-### 4.9. Persistencia y autenticación — `PruebaPersistenciaDAO`
+| Característica | Resultado |
+|---|---:|
+| Productores | 4 |
+| Consumidores | 4 |
+| Operaciones por hilo | 100 |
+| Depósitos esperados y realizados | 400 |
+| Retiros esperados y realizados | 400 |
+| Capacidad de la plataforma | 5 |
+| Balance final | 0 |
 
-Se utilizó un **archivo temporal independiente**, sin modificar los datos de usuarios de la aplicación. Se comprobó el registro de dos usuarios, rechazo de nombres duplicados, búsquedas, contraseñas correctas e incorrectas, validación del DTO, estructura del archivo, persistencia al crear una segunda instancia del DAO y limpieza del usuario activo al cerrar sesión. El archivo temporal se elimina al finalizar.
+**Resultados registrados:**
 
-**Salida final registrada:**
+`[OK] Depositos, retiros y capacidad`
 
-```text
-[OK] Registro de usuarios y rechazo de duplicados
-[OK] Busqueda, credenciales y entradas invalidas
-[OK] Archivo con dos registros y formato esperado
-[OK] Persistencia entre instancias y cierre de sesion
+`[OK] Productor espera y se desbloquea`
 
-[OK] TODAS LAS PRUEBAS DE PERSISTENCIA PASARON
-```
+`[OK] Consumidor espera y se desbloquea`
 
-**Consideración de seguridad:** la codificación Base64 de las credenciales es reversible y no equivale a cifrado ni a un hash de contraseñas. Las pruebas comprueban el mecanismo implementado, no su idoneidad para un sistema productivo.
+`[OK] 400 depositos, 400 retiros, 8 hilos`
 
-## 5. Demostraciones gráficas disponibles
+`[OK] Capacidad respetada y balance final: 0`
 
-El repositorio incluye clases ejecutables para revisar visualmente las interfaces:
+**Estado:** APROBADA.
 
-| Clase | Propósito |
-|---|---|
-| `PruebaJPanelTablero` | Abrir el tablero y observar los elementos y turnos de `Destino` |
-| `PruebaPanelMisiones` | Abrir la interfaz de misiones |
-| `pruebaPanelConcurrencia` | Observar productores y consumidores desde el visor |
-| `PruebaJPanelTablero.PruebaPersistencia` | Demostración visual de registro e inicio de sesión (clase interna) |
-| `MainApp` | Recorrido completo de la aplicación |
+Durante la revisión se ejecutó 13 veces correctamente.
 
-**Estado de la evidencia:** la compilación de estas clases está verificada, pero este documento **no certifica** el uso manual de todos los controles, la navegación por las pantallas ni la validación visual completa. Esas verificaciones deben realizarse en la computadora de presentación.
+Las repeticiones permiten aumentar la confianza en el comportamiento concurrente observado, aunque no constituyen una prueba formal de ausencia de errores para todas las posibles intercalaciones de hilos.
 
-## 6. Lista de verificación manual antes de entregar
+### 4.9. `PruebaPersistenciaDAO` — DAO, DTO y autenticación
 
-- [ ] Abrir `MainApp` y completar registro e inicio de sesión.
-- [ ] Crear cada tipo de nave y comprobar la tripulación mínima de cinco integrantes.
-- [ ] Revisar la visualización de haberes y subsidios por origen.
-- [ ] Confirmar que el tablero, los sensores y la bitácora se actualizan durante la navegación.
-- [ ] Ejecutar M-01, M-02 y M-03 desde la interfaz, revisar sus informes y comprobar los recursos finales.
-- [ ] Verificar que el panel de recursos muestre correctamente combustible, energía, desgaste y gemas.
-- [ ] Abrir el Visor Recóndito, incorporar productores y consumidores y comprobar la respuesta de la interfaz.
-- [ ] Confirmar el JDK y la compilación del proyecto en el equipo que utilizarán para entregar o defender.
+**Objetivo:** verificar la persistencia de usuarios utilizando un archivo temporal independiente.
 
-## 7. Conclusión
+Se comprueba:
 
-En la versión auditada, **9 de 9 pruebas automáticas principales pasaron**, y no se detectaron errores durante la compilación con Java 21. Las verificaciones cubren contratos de recursos, State, Decorator por origen, universo, sensores, navegación, misiones, Double Dispatch, monitores y persistencia DAO/DTO.
+- Registro de usuarios.
+- Rechazo de usuarios duplicados.
+- Normalización de nombres.
+- Búsqueda de usuarios registrados.
+- Autenticación con credenciales correctas.
+- Rechazo de contraseñas incorrectas.
+- Rechazo de usuarios inexistentes.
+- Validación de datos del DTO.
+- Estructura de los registros almacenados.
+- Persistencia después de crear otra instancia del DAO.
+- Inicio y cierre de sesión.
 
-Los antiguos registros de los escenarios A y B, así como sus mensajes de `PENDIENTE`, no se mantienen porque reflejaban una implementación y unos casos de prueba anteriores. Su eliminación documental no implica afirmar que todos los requisitos históricos hayan quedado demostrados: las afirmaciones de este archivo se limitan a los comportamientos efectivamente comprobados.
+La prueba crea un archivo temporal, realiza las operaciones y lo elimina al finalizar.
 
-La **prueba manual integral de la interfaz y la compilación con Maven usando el JDK de entrega** siguen siendo verificaciones finales recomendadas.
+De esta manera, no modifica las credenciales utilizadas por la aplicación principal.
+
+**Resultados registrados:**
+
+`[OK] Registro de usuarios y rechazo de duplicados`
+
+`[OK] Busqueda, credenciales y entradas invalidas`
+
+`[OK] Archivo con dos registros y formato esperado`
+
+`[OK] Persistencia entre instancias y cierre de sesion`
+
+**Estado:** APROBADA.
+
+**Consideración:** Base64 es una codificación reversible, no un método de cifrado ni de almacenamiento criptográficamente seguro de contraseñas. La prueba verifica la persistencia implementada dentro del alcance académico del proyecto.
+
+## 5. Pruebas visuales y demostraciones auxiliares
+
+Las siguientes pruebas forman parte del proyecto, pero requieren observar sus resultados o interactuar manualmente con sus interfaces.
+
+Por esta razón, se documentan por separado de las pruebas automáticas.
+
+### 5.1. `PruebaJPanelTablero`
+
+**Archivo:** `PruebaJPanelTablero.java`
+
+**Tipo:** prueba visual.
+
+**Objetivo:** observar el funcionamiento del tablero del universo.
+
+La prueba:
+
+- Crea una nave Exploradora.
+- Genera un universo de 20×20.
+- Incorpora asteroides, estaciones de carga y naves enemigas.
+- Selecciona un objetivo.
+- Abre una ventana Swing con `JPanelTablero`.
+- Ejecuta turnos de `Destino` automáticamente cada 600 milisegundos.
+
+**Verificación manual esperada:** comprobar que el tablero se visualiza correctamente, que los elementos se desplazan y que la interfaz refleja las actualizaciones.
+
+**Estado:** disponible para ejecución visual; pendiente de certificación manual completa.
+
+### 5.2. `PruebaPanelMisiones`
+
+**Archivo:** `PruebaPanelMisiones.java`
+
+**Tipo:** prueba visual.
+
+**Objetivo:** comprobar la apertura y visualización del módulo de misiones.
+
+La prueba:
+
+- Crea una nave Exploradora.
+- Inicializa una bitácora.
+- Construye un tablero de 7×7.
+- Configura sensores y reglas de navegación.
+- Instancia el asistente de comandos.
+- Abre una ventana Swing con `PanelMisiones`.
+
+**Verificación manual esperada:** comprobar que el panel se abre, que sus controles se muestran correctamente y que permite interactuar con las misiones según la configuración del escenario.
+
+**Estado:** disponible para ejecución visual; pendiente de certificación manual completa.
+
+### 5.3. `pruebaPanelConcurrencia`
+
+**Archivo:** `pruebaPanelConcurrencia.java`
+
+**Tipo:** prueba visual.
+
+**Objetivo:** demostrar la integración de monitores, MVC y Observer en el Visor Recóndito.
+
+La prueba:
+
+- Crea una `PlataformaDeCarga` con capacidad para cinco baterías.
+- Instancia `JPanelVisorRecondito`.
+- Registra la vista como observadora del modelo.
+- Crea `VisorReconditoController`.
+- Abre una ventana Swing.
+- Inicia una generadora y una nave consumidora.
+
+**Verificación manual esperada:** observar la producción y el consumo de baterías, las actualizaciones automáticas de la interfaz y la incorporación de productores y consumidores adicionales.
+
+**Estado:** disponible para ejecución visual; pendiente de certificación manual completa.
+
+### 5.4. `PruebaJPanelTablero.PruebaPersistencia`
+
+**Archivo:** `PruebaJPanelTablero.java`
+
+**Tipo:** clase interna de prueba visual.
+
+**Objetivo:** demostrar el funcionamiento gráfico del registro e inicio de sesión.
+
+La clase utiliza:
+
+- `ArchivoUsuarioDao`.
+- `AutenticacionService`.
+- `AutenticacionController`.
+- `JPanelLogin`.
+- `JPanelRegistro`.
+
+El módulo utiliza un archivo de prueba ubicado en `target/prueba_usuarios.txt`, separado del archivo principal de la aplicación.
+
+La prueba permite observar:
+
+- Navegación entre login y registro.
+- Registro de usuarios.
+- Inicio de sesión.
+- Notificaciones de autenticación.
+- Presentación de mensajes de error.
+
+**Verificación manual esperada:** registrar un usuario, iniciar sesión correctamente y comprobar los mensajes ante credenciales incorrectas.
+
+**Estado:** disponible para ejecución visual; pendiente de certificación manual completa.
+
+**Observación:** a diferencia de `PruebaPersistenciaDAO`, esta demostración no utiliza un archivo temporal que se elimine automáticamente.
+
+### 5.5. `PruebaPanelMisiones.Prueba`
+
+**Archivo:** `PruebaPanelMisiones.java`
+
+**Tipo:** clase interna de demostración por consola.
+
+**Objetivo:** ejecutar operaciones básicas de creación y administración de una nave.
+
+La demostración:
+
+- Crea una nave Exploradora.
+- Crea un capitán, un consejero, un teniente y dos alféreces.
+- Agrega los cinco tripulantes a la nave.
+- Muestra la cantidad de tripulantes.
+- Consulta la validez de la tripulación.
+- Muestra el haber del capitán.
+- Busca un tripulante por identificador.
+- Ejecuta un consumo de combustible, energía y desgaste.
+- Muestra los recursos restantes.
+- Registra un evento en la bitácora.
+
+**Verificación manual esperada:** revisar los valores impresos en consola y comprobar que sean coherentes con las operaciones realizadas.
+
+**Estado:** disponible como demostración de consola.
+
+**Observación:** esta clase imprime resultados, pero no utiliza aserciones que verifiquen automáticamente todas las condiciones. Por ello, no se incluye entre las nueve pruebas automáticas aprobadas.
+
+## 6. Prueba integral — `MainApp`
+
+**Archivo:** `nave_interestelar/src/main/java/MainApp.java`
+
+**Objetivo:** verificar el funcionamiento conjunto de los módulos del sistema desde la aplicación principal.
+
+La ejecución integral permite recorrer:
+
+- Registro e inicio de sesión.
+- Creación de naves.
+- Administración de tripulación.
+- Cálculo y visualización de haberes.
+- Tablero y universo dinámico.
+- Sensores y navegación.
+- Ejecución de misiones.
+- Visualización de informes.
+- Bitácora y recursos.
+- Visor Recóndito y concurrencia.
+
+A diferencia de las pruebas automáticas, esta verificación depende de la interacción del usuario con las pantallas.
+
+**Estado:** aplicación disponible para ejecución integral; pendiente de certificación manual completa.
+
+## 7. Lista de verificación manual antes de entregar
+
+- [ ] Ejecutar `MainApp` y verificar el inicio de la aplicación.
+- [ ] Registrar un usuario e iniciar sesión.
+- [ ] Crear los tres tipos de nave en escenarios independientes.
+- [ ] Verificar una tripulación válida de cinco integrantes.
+- [ ] Comprobar la visualización de haberes y subsidios por origen.
+- [ ] Revisar el tablero dinámico y el movimiento de elementos.
+- [ ] Comprobar las actualizaciones del panel de recursos.
+- [ ] Ejecutar M-01 y verificar la transferencia a la nave aliada.
+- [ ] Ejecutar M-02 y verificar la recolección de gemas.
+- [ ] Ejecutar M-03 y verificar el retorno y la recarga.
+- [ ] Revisar los informes e historial de misiones.
+- [ ] Abrir el Visor Recóndito y agregar productores y consumidores.
+- [ ] Verificar que la interfaz siga respondiendo durante las operaciones concurrentes.
+- [ ] Compilar y ejecutar el proyecto en el equipo que se utilizará para la entrega o exposición.
+
+## 8. Resumen final de resultados
+
+| Categoría | Cantidad | Estado |
+|---|---:|---|
+| Pruebas automáticas | 9 | 9 aprobadas |
+| Pruebas visuales independientes | 3 | Disponibles |
+| Demostración visual interna | 1 | Disponible |
+| Demostración de consola interna | 1 | Disponible |
+| Aplicación principal (`MainApp`) | 1 | Disponible |
+
+**Total: 14 pruebas y demostraciones identificadas, además de la aplicación principal.**
+
+Las nueve pruebas automáticas principales fueron ejecutadas satisfactoriamente sobre la versión revisada.
+
+Las cinco demostraciones adicionales están incluidas en el repositorio y permiten observar aspectos específicos del sistema, aunque sus verificaciones visuales y manuales deben completarse antes de la entrega.
+
+## 9. Conclusión
+
+La batería de pruebas permite verificar los principales componentes del Sistema de Nave Interestelar y ofrece evidencias reproducibles de su funcionamiento.
+
+Los resultados automáticos cubren las operaciones de recursos, los patrones State, Decorator y Double Dispatch, el universo dinámico, los sensores, las reglas de navegación, las misiones, los monitores de concurrencia y la persistencia DAO/DTO.
+
+Las demostraciones adicionales permiten revisar el funcionamiento visual del tablero, las misiones, el módulo de autenticación, las operaciones básicas de la nave y el universo concurrente.
+
+La documentación distingue entre resultados comprobados automáticamente y verificaciones que requieren observación manual, evitando presentar como aprobados escenarios que todavía no fueron evaluados de forma integral.
+
+**Resultado general:** las nueve pruebas automáticas principales aprobaron; no se detectaron errores de compilación en la revisión con Java 21.
+
+Como última etapa, se recomienda completar la revisión manual de `MainApp` y comprobar la compilación en el entorno elegido para la entrega.
